@@ -17,11 +17,9 @@ function App() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState('OCR');
-  
-  // New States for Filtering
+
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  
-  // Default to current hour if within 6 AM - 6 PM, else 2 (8 AM)
+
   const currentHour = new Date().getHours();
   const defaultBar = (currentHour >= 6 && currentHour <= 18) ? currentHour - 6 : 2;
   const [activeBar, setActiveBar] = useState(defaultBar);
@@ -35,12 +33,12 @@ function App() {
     const now = new Date();
     const entry = {
       id: Date.now(),
-      fecha: selectedDate, // Add to currently selected date
+      fecha: selectedDate,
       hora: format(now, 'hh:mm a'),
       duracion: '--',
       ...newEntry
     };
-    
+
     setData([entry, ...data]);
   };
 
@@ -48,11 +46,10 @@ function App() {
     window.location.reload();
   };
 
-  // Calculate chart data dynamically based on the selectedDate
   const chartData = React.useMemo(() => {
-    const hours = Array(13).fill(0); // 6 AM to 6 PM (13 bars)
+    const hours = Array(13).fill(0);
     const dateData = data.filter(item => item.fecha === selectedDate);
-    
+
     dateData.forEach(item => {
       const parts = item.hora.match(/(\d+):(\d+)\s+(AM|PM)/i);
       if (parts) {
@@ -60,7 +57,7 @@ function App() {
         const ampm = parts[3].toUpperCase();
         if (h === 12) h = 0;
         if (ampm === 'PM') h += 12;
-        
+
         const index = h - 6;
         if (index >= 0 && index < 13) {
           hours[index]++;
@@ -70,17 +67,16 @@ function App() {
 
     const maxCount = Math.max(...hours, 1);
     return hours.map((count) => ({
-      height: (count / maxCount) * 100, // percentage for the UI
+      height: (count / maxCount) * 100,
       label: count > 0 ? count.toString() : "",
       realCount: count
     }));
   }, [data, selectedDate]);
 
-  // Filter Logic for Table
   const filteredData = React.useMemo(() => {
     return data.filter(item => {
       if (item.fecha !== selectedDate) return false;
-      
+
       if (activeBar !== null) {
         let hour24 = 6 + activeBar;
         let ampm = hour24 >= 12 && hour24 < 24 ? 'PM' : 'AM';
@@ -95,7 +91,6 @@ function App() {
     });
   }, [data, selectedDate, activeBar]);
 
-  // Determine button text
   const getButtonDateText = () => {
     try {
       if (isToday(parseISO(selectedDate))) return 'Hoy';
@@ -108,7 +103,7 @@ function App() {
   const stats = React.useMemo(() => {
     const capacity = 450;
     const baseOccupied = 330;
-    
+
     const relevantData = data.filter(item => item.fecha === selectedDate);
     const entradas = relevantData.filter(item => item.estado.includes('Entrada')).length;
     const salidas = relevantData.filter(item => item.estado.includes('Salida')).length;
@@ -135,21 +130,21 @@ function App() {
     <div className="min-h-screen bg-[#f8fafc] font-sans">
       <Sidebar />
       <Header />
-      
+
       <main className="ml-64 pt-24 p-8">
         <div className="max-w-6xl mx-auto">
-          
-          {/* Main Title Section */}
+
+          { }
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
               <h2 className="text-[28px] font-bold text-slate-900 tracking-tight leading-none mb-2">Resumen</h2>
               <p className="text-[14px] text-slate-500">Estado del recinto en tiempo real para 14 nov. 2023</p>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <div className="relative inline-flex">
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -165,13 +160,13 @@ function App() {
             </div>
           </div>
 
-          {/* Stat Cards - Exact Layout from Image */}
+          { }
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <StatCard 
-              title="TOTAL CAPACITY" 
-              value={stats.capacity} 
-              subtitle="Assigned & Guest Spots" 
-              icon={LayoutGrid} 
+            <StatCard
+              title="TOTAL CAPACITY"
+              value={stats.capacity}
+              subtitle="Assigned & Guest Spots"
+              icon={LayoutGrid}
             />
             <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-[40px] -z-0"></div>
@@ -191,47 +186,47 @@ function App() {
               </div>
             </div>
 
-            <StatCard 
-              title="OCCUPIED" 
-              value={stats.occupied} 
-              subtitle="76% utilization rate" 
-              icon={Car} 
+            <StatCard
+              title="OCCUPIED"
+              value={stats.occupied}
+              subtitle="76% utilization rate"
+              icon={Car}
             />
-            <StatCard 
-              title="ACTIVE IN FACILITY" 
-              value={stats.active} 
-              subtitle="vs last hour" 
-              icon={Radio} 
+            <StatCard
+              title="ACTIVE IN FACILITY"
+              value={stats.active}
+              subtitle="vs last hour"
+              icon={Radio}
               trend="up"
               trendValue={stats.activeTrend}
             />
           </div>
 
-          {/* Two Column Layout */}
+          { }
           <div className="flex flex-col lg:flex-row gap-6">
-            
-            {/* Left Column */}
+
+            { }
             <div className="w-full lg:w-[320px] flex flex-col">
               <QuickActions onOpenModal={handleOpenModal} />
               <VolumeChart activeBar={activeBar} onBarSelect={setActiveBar} data={chartData} />
             </div>
 
-            {/* Right Column */}
+            { }
             <div className="flex-1">
               <RecentActivity data={filteredData} allDayData={allDayData} />
             </div>
 
           </div>
-          
+
         </div>
       </main>
 
-      {/* Modal for Interactions */}
-      <Modal 
-        isOpen={modalOpen} 
-        onClose={() => setModalOpen(false)} 
-        onSubmit={handleAddEntry} 
-        type={modalType} 
+      { }
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleAddEntry}
+        type={modalType}
       />
     </div>
   );

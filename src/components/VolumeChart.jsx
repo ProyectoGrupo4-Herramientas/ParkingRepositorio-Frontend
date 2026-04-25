@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+
 
 const VolumeChart = ({ activeBar, onBarSelect, data }) => {
 
@@ -12,22 +12,21 @@ const VolumeChart = ({ activeBar, onBarSelect, data }) => {
 
       <div className="flex-1 flex items-end justify-between px-2 gap-2 relative">
         {data.map((item, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className="w-full h-full flex flex-col justify-end items-center group cursor-pointer"
             onClick={() => onBarSelect(index)}
           >
-            {/* Value Label above active bar (like the "8" in image) */}
+            { }
             <div className={`text-xs font-semibold mb-1 transition-opacity ${activeBar === index ? 'opacity-100 text-slate-900' : 'opacity-0'}`}>
               {item.label || Math.floor(item.height / 10)}
             </div>
-            
-            {/* The Bar */}
-            <div 
+
+            { }
+            <div
               style={{ height: `${item.height}%` }}
-              className={`w-full rounded-t-sm transition-all duration-300 ${
-                activeBar === index ? 'bg-slate-900' : 'bg-blue-100 group-hover:bg-blue-200'
-              }`}
+              className={`w-full rounded-t-sm transition-all duration-300 ${activeBar === index ? 'bg-slate-900' : 'bg-blue-100 group-hover:bg-blue-200'
+                }`}
             ></div>
           </div>
         ))}

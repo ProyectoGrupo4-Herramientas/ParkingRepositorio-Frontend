@@ -27,23 +27,20 @@ const getStatusBadge = (estado) => {
 
 const RecentActivity = ({ data, allDayData }) => {
   const [showAll, setShowAll] = React.useState(false);
-
-  // When showAll is true, display all activity for the day.
-  // Otherwise, display up to 5 items of the filtered data (selected hour).
   const displayData = showAll ? allDayData : data.slice(0, 5);
 
   return (
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-full">
       <div className="p-6 flex items-center justify-between border-b border-slate-50">
         <h3 className="text-lg font-semibold text-slate-900">Actividad de Acceso Reciente</h3>
-        <button 
-          onClick={(e) => { e.preventDefault(); setShowAll(!showAll); }} 
+        <button
+          onClick={(e) => { e.preventDefault(); setShowAll(!showAll); }}
           className="text-xs font-semibold text-slate-900 hover:text-slate-600 transition-colors"
         >
           {showAll ? 'Ver Menos' : 'Ver Todo'}
         </button>
       </div>
-      
+
       <div className="overflow-x-auto flex-1">
         <table className="w-full text-left border-collapse">
           <thead>
