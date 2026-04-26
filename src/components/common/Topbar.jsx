@@ -15,7 +15,7 @@ export default function Topbar({ onMenuOpen }) {
         <span className="material-symbols-outlined text-slate-400 flex-shrink-0" style={{ fontSize: 18 }}>search</span>
         <input
           className="bg-transparent outline-none text-sm w-full text-slate-700 placeholder:text-slate-400 min-w-0"
-          placeholder="Buscar placas, unidades..."
+          placeholder="Buscar matrículas, residentes o unidades..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
