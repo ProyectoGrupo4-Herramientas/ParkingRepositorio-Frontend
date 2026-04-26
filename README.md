@@ -155,7 +155,7 @@ http://localhost:5173
 ```
 ---
 
-# 9. Uso del Sistema
+## 9. Uso del Sistema
 
 El flujo principal de uso es el siguiente:
 1. Registrar la entrada de un vehículo
@@ -165,6 +165,6 @@ El flujo principal de uso es el siguiente:
 5. Registrar la salida del vehículo
 ---
 
-# 10. Estado del Proyecto
+## 10. Estado del Proyecto
 El proyecto se encuentra en fase de desarrollo frontend. Actualmente utiliza datos simulados para representar la funcionalidad del sistema.
 La integración con un backend y una base de datos será implementada en una siguiente entrega del proyecto.
