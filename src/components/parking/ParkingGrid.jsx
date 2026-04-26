@@ -1,13 +1,6 @@
 import ParkingSpot from "./ParkingSpot";
-import type { ParkingSpotType } from "../../services/ParkingService";
 
-interface Props {
-  spots: ParkingSpotType[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-}
-
-export default function ParkingGrid({ spots, selectedId, onSelect }: Props) {
+export default function ParkingGrid({ spots, selectedId, onSelect }) {
   const rowA = spots.filter(s => s.code.startsWith("A"));
   const rowB = spots.filter(s => s.code.startsWith("B"));
 

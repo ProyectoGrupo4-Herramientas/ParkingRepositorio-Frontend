@@ -1,10 +1,4 @@
-import type { OccupancyData } from "../../services/ParkingService";
-
-interface Props {
-  data: OccupancyData | null;
-}
-
-export default function OccupancyCard({ data }: Props) {
+export default function OccupancyCard({ data }) {
   if (!data) return null;
 
   const percent = Math.round((data.occupied / data.total) * 100);

@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { getSpots, getOccupancy } from "../services/ParkingService";
-import type { ParkingSpotType, OccupancyData } from "../services/ParkingService";
 
 export function useParkingSelection() {
-  const [spots, setSpots] = useState<ParkingSpotType[]>([]);
-  const [occupancy, setOccupancy] = useState<OccupancyData | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [spots, setSpots] = useState([]);
+  const [occupancy, setOccupancy] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
@@ -15,12 +14,20 @@ export function useParkingSelection() {
 
   const selectedSpot = spots.find(s => s.id === selectedId);
 
-  const handleSelect = (id: string) => {
+  const handleSelect = (id) => {
     setSelectedId(id);
     setShowDetailsModal(true);
   };
 
   const closeModal = () => setShowDetailsModal(false);
 
-  return { spots, occupancy, selectedId, selectedSpot, showDetailsModal, handleSelect, closeModal };
+  return {
+    spots,
+    occupancy,
+    selectedId,
+    selectedSpot,
+    showDetailsModal,
+    handleSelect,
+    closeModal
+  };
 }

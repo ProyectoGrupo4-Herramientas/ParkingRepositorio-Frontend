@@ -1,10 +1,6 @@
 import { useState } from "react";
 
-interface Props {
-  onMenuOpen: () => void;
-}
-
-export default function Topbar({ onMenuOpen }: Props) {
+export default function Topbar({ onMenuOpen }) {
   const [search, setSearch] = useState("");
 
   return (

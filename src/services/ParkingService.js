@@ -1,21 +1,4 @@
-export type SpotStatus = "occupied" | "available" | "reserved" | "maintenance";
-
-export interface ParkingSpotType {
-  id: string;
-  code: string;
-  status: SpotStatus;
-  plate?: string;
-  icon?: string;
-  selected?: boolean;
-}
-
-export interface OccupancyData {
-  occupied: number;
-  available: number;
-  total: number;
-}
-
-const mockSpots: ParkingSpotType[] = [
+const mockSpots = [
   { id: "1", code: "A-101", status: "occupied",    plate: "XYZ-1234", icon: "directions_car" },
   { id: "2", code: "A-102", status: "occupied",    plate: "ABC-9876", icon: "directions_car" },
   { id: "3", code: "A-103", status: "available" },
@@ -26,12 +9,17 @@ const mockSpots: ParkingSpotType[] = [
   { id: "8", code: "B-202", status: "available" },
 ];
 
-export async function getSpots(): Promise<ParkingSpotType[]> {
+export async function getSpots() {
   return Promise.resolve(mockSpots);
 }
 
-export async function getOccupancy(): Promise<OccupancyData> {
+export async function getOccupancy() {
   const occupied  = mockSpots.filter(s => s.status === "occupied").length;
   const available = mockSpots.filter(s => s.status === "available").length;
-  return Promise.resolve({ occupied, available, total: mockSpots.length });
+
+  return Promise.resolve({
+    occupied,
+    available,
+    total: mockSpots.length
+  });
 }

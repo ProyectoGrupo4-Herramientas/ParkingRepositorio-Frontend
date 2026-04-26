@@ -1,12 +1,6 @@
 import ParkingDetails from "./ParkingDetails";
-import type { ParkingSpotType } from "../../services/ParkingService";
 
-interface Props {
-  spot: ParkingSpotType | undefined;
-  onClose: () => void;
-}
-
-export default function DetailsBottomSheet({ spot, onClose }: Props) {
+export default function DetailsBottomSheet({ spot, onClose }) {
   if (!spot) return null;
 
   return (
