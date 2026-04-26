@@ -1,13 +1,21 @@
 import { useState } from "react";
 import Sidebar from "../components/common/Sidebar";
 import Topbar from "../components/common/Topbar";
+import VehicleModal from "../components/VehicleModal";
 
 export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      {/* SIDEBAR */}
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onOpenModal={() => setIsModalOpen(true)}
+      />
 
       <div className="md:ml-[260px] flex flex-col min-h-screen">
         <Topbar onMenuOpen={() => setSidebarOpen(true)} />
@@ -16,6 +24,12 @@ export default function MainLayout({ children }) {
           {children}
         </main>
       </div>
+
+      {/* MODAL GLOBAL */}
+      <VehicleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

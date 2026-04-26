@@ -3,6 +3,16 @@
 
 @import "tailwindcss";
 
+/* THEME (de tu compa) */
+@theme {
+  --color-primary: #111827;
+  --color-secondary: #4b5563;
+  --color-background: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+}
+
+/* BASE (tu versión) */
 html {
   overflow-y: scroll;
 }
@@ -14,32 +24,14 @@ html {
   }
 }
 
+/* COMPONENTS */
 @layer components {
   .sidebar-link {
     @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-100 hover:text-slate-900 transition-colors mx-2;
   }
-
-  .sidebar-link.active,
-  .sidebar-link[aria-current="page"] {
-    @apply bg-slate-100 text-slate-900 font-semibold;
-  }
 }
 
-/* Scrollbar */
+/* scrollbar (tu versión) */
 ::-webkit-scrollbar {
   width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
 }

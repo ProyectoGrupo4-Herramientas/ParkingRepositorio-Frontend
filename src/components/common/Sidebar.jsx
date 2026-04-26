@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+
 import {
   LayoutDashboard,
   Shield,
@@ -18,7 +19,7 @@ const navLinks = [
   { to: "/history", icon: History, label: "Historial de Acceso" },
 ];
 
-export default function Sidebar({ open, onClose }) {
+export default function Sidebar({ open, onClose, onOpenModal }) {
   return (
     <>
       {open && (
@@ -43,7 +44,10 @@ export default function Sidebar({ open, onClose }) {
 
         {/* button */}
         <div className="px-4 mb-6">
-          <button className="w-full bg-slate-900 text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-slate-700">
+          <button
+            onClick={onOpenModal}
+            className="w-full bg-slate-900 text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-slate-700"
+          >
             <PlusCircle size={18} />
             Registrar Nuevo Vehículo
           </button>
