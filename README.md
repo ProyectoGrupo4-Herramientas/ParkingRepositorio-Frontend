@@ -54,6 +54,7 @@ La aplicación sigue una arquitectura modular basada en componentes, organizada 
 - Tailwind CSS  
 - Lucide React  
 - Node.js   
+- ESLint
 
 ---
 
