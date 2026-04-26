@@ -3,8 +3,10 @@
 
 @import "tailwindcss";
 
-/* THEME (de tu compa) */
+/* THEME */
 @theme {
+  --font-sans: 'DM Sans', sans-serif;
+
   --color-primary: #111827;
   --color-secondary: #4b5563;
   --color-background: #f3f4f6;
@@ -12,15 +14,23 @@
   --color-border: #e5e7eb;
 }
 
-/* BASE (tu versión) */
+/* BASE */
 html {
   overflow-y: scroll;
 }
 
 @layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
   body {
-    font-family: 'DM Sans', sans-serif;
     @apply antialiased text-slate-800 bg-[#f8fafc];
+    font-family: 'DM Sans', sans-serif;
   }
 }
 
@@ -31,7 +41,20 @@ html {
   }
 }
 
-/* scrollbar (tu versión) */
+/* SCROLLBAR */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

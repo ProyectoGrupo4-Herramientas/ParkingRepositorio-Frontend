@@ -12,13 +12,10 @@ dist
 dist-ssr
 *.local
 
-<<<<<<< HEAD
 # Env (IMPORTANTE)
 .env
 .env.*
 
-=======
->>>>>>> origin/Feature4-DirectorioVehiculosResidentes
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -29,9 +26,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-<<<<<<< HEAD
 
 # TypeScript (opcional)
 *.tsbuildinfo
-=======
->>>>>>> origin/Feature4-DirectorioVehiculosResidentes
