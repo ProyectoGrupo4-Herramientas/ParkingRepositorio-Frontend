@@ -153,6 +153,13 @@ npm run dev
 ```bash
 http://localhost:5173
 ```
+## Despliegue en la Nube
+
+La aplicación se encuentra desplegada en la nube utilizando Vercel, lo que permite acceder al sistema sin necesidad de instalación local.
+
+Acceso a la aplicación:
+https://parkingrepositorio-frontend-deployd.vercel.app/
+
 ---
 
 ## 9. Uso del Sistema
