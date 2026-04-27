@@ -122,7 +122,7 @@ export default function DashboardPage() {
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight leading-none mb-2">Dashboard</h2>
+            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight leading-none mb-2">Panel de Control</h2>
             <p className="text-[14px] text-slate-500">Estado del recinto en tiempo real</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -154,9 +154,9 @@ export default function DashboardPage() {
         {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <StatCard
-            title="TOTAL CAPACITY"
+            title="CAPACIDAD TOTAL"
             value={stats.capacity}
-            subtitle="Assigned & Guest Spots"
+            subtitle="Espacios asignados y de visitantes"
             icon={LayoutGrid}
           />
 
@@ -169,26 +169,26 @@ export default function DashboardPage() {
                   <div className="p-2 bg-emerald-500 rounded-full text-white">
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
-                  <h3 className="text-[11px] font-bold text-emerald-800 uppercase tracking-widest">AVAILABLE</h3>
+                  <h3 className="text-[11px] font-bold text-emerald-800 uppercase tracking-widest">DISPONIBLE</h3>
                 </div>
               </div>
               <div className="mt-4">
                 <div className="text-3xl font-bold text-slate-900">{stats.available}</div>
-                <p className="text-sm text-slate-500 mt-1">24% of total capacity</p>
+                <p className="text-sm text-slate-500 mt-1">24% de la capacidad total</p>
               </div>
             </div>
           </div>
 
           <StatCard
-            title="OCCUPIED"
+            title="OCUPADAS"
             value={stats.occupied}
-            subtitle="76% utilization rate"
+            subtitle="76% de la tasa de ocupación"
             icon={Car}
           />
           <StatCard
-            title="ACTIVE IN FACILITY"
+            title="ACTIVAS EN LAS INSTALACIONES"
             value={stats.active}
-            subtitle="vs last hour"
+            subtitle="vs última hora"
             icon={Radio}
             trend="up"
             trendValue={stats.activeTrend}
