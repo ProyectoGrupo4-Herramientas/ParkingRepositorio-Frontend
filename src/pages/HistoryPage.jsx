@@ -7,7 +7,7 @@ import Pagination from "../components/Pagination";
 import { mockData } from "../data/mockData";
 
 export default function HistoryPage() {
-  // 🔹 LocalStorage + normalización de datos
+  // 🔹 LocalStorage + normalización
   const [data, setData] = useState(() => {
     const savedData = localStorage.getItem("parkControlData");
 
@@ -17,7 +17,6 @@ export default function HistoryPage() {
       parsed = parsed.map((item) => {
         let tipo = item.tipoOcupante || item.tipo || "Invitado";
 
-        // 🔹 Normalización segura
         const normalizados = {
           Visitante: "Invitado",
           Invitado: "Invitado",
@@ -34,8 +33,8 @@ export default function HistoryPage() {
         };
       });
 
-      // 🔹 Fallback si hay pocos datos
-      if (parsed.length < 15) {
+      // 🔥 Ajustado a 50 registros
+      if (parsed.length < 50) {
         return mockData;
       }
 
@@ -61,7 +60,7 @@ export default function HistoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // 🔹 Filtros completos
+  // 🔹 Filtros
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const matchSearch = item.placa
