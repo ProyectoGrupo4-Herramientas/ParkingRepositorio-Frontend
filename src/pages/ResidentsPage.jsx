@@ -9,7 +9,7 @@ import {
   updateStatuses,
 } from "../utils/localStorage";
 
-export default function Dashboard() {
+export default function Residents() {
   const [vehicles, setVehicles] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos los Estados");
@@ -54,7 +54,7 @@ export default function Dashboard() {
         (v) =>
           v.plate.toLowerCase().includes(lowerQuery) ||
           v.owner.toLowerCase().includes(lowerQuery) ||
-          v.unit.toLowerCase().includes(lowerQuery)
+          v.unit.toLowerCase().includes(lowerQuery),
       );
     }
 
@@ -62,20 +62,19 @@ export default function Dashboard() {
   }, [vehicles, searchQuery, statusFilter, typeFilter]);
 
   const stats = useMemo(() => {
-    const total = vehicles.length;
-    const activeResidents = vehicles.filter(
-      (v) => v.type === "Residente" && v.status === "Activo"
-    ).length;
-    const temporalPasses = vehicles.filter((v) => v.type === "Temporal").length;
-    const alerts = vehicles.filter((v) => v.status === "Expirado").length;
-
-    return { total, activeResidents, temporalPasses, alerts };
+    return {
+      total: vehicles.length,
+      activeResidents: vehicles.filter(
+        (v) => v.type === "Residente" && v.status === "Activo",
+      ).length,
+      temporalPasses: vehicles.filter((v) => v.type === "Temporal").length,
+      alerts: vehicles.filter((v) => v.status === "Expirado").length,
+    };
   }, [vehicles]);
 
   return (
-    <MainLayout>
+    <MainLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
       <div className="max-w-7xl mx-auto space-y-6 p-8">
-
         {/* HEADER */}
         <div className="flex justify-between items-center">
           <div>
@@ -83,12 +82,12 @@ export default function Dashboard() {
               Directorio de Vehículos y Residentes
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Gestión centralizada de residentes, unidades y vehículos autorizados
+              Gestión centralizada de residentes, unidades y vehículos
+              autorizados
             </p>
           </div>
 
           <div className="flex items-center space-x-4">
-
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -111,7 +110,7 @@ export default function Dashboard() {
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
+              className="flex items-center bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800"
             >
               <svg
                 className="w-4 h-4 mr-2"
@@ -131,17 +130,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* STATS */}
         <StatsCards stats={stats} />
 
-        {/* TABLE */}
         <VehicleTable
           vehicles={filteredVehicles}
           totalCount={vehicles.length}
         />
       </div>
 
-      {/* MODAL */}
       <VehicleModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

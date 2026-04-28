@@ -12,7 +12,10 @@ export default function HistoryPage() {
     return savedData ? JSON.parse(savedData) : mockData;
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [searchTerm, setSearchTerm] = useState("");
+
   const [unitFilter, setUnitFilter] = useState("Todas las Unidades");
   const [typeFilter, setTypeFilter] = useState("Todos");
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,10 +27,12 @@ export default function HistoryPage() {
   }, [data]);
 
   const filteredData = useMemo(() => {
+    const q = (searchQuery || searchTerm).toLowerCase();
+
     return data.filter((item) => {
-      const matchSearch = item.placa
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      const matchSearch =
+        (item.placa || "").toLowerCase().includes(q) ||
+        (item.unidad || "").toLowerCase().includes(q);
 
       const matchUnit =
         unitFilter === "Todas las Unidades" || item.unidad === unitFilter;
@@ -42,20 +47,18 @@ export default function HistoryPage() {
 
       return matchSearch && matchUnit && matchType;
     });
-  }, [data, searchTerm, unitFilter, typeFilter]);
+  }, [data, searchQuery, searchTerm, unitFilter, typeFilter]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
 
   const currentData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   return (
-    <MainLayout>
+    <MainLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
       <div className="space-y-6">
-
-        {/* HEADER */}
         <Header dataToExport={filteredData} />
 
         <Filters
@@ -82,7 +85,6 @@ export default function HistoryPage() {
             />
           </div>
         </div>
-
       </div>
     </MainLayout>
   );

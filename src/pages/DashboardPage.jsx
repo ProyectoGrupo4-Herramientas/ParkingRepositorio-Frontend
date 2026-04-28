@@ -7,8 +7,12 @@ import RecentActivity from "../components/RecentActivity";
 import Modal from "../components/Modal";
 import { parseISO, isToday, format } from "date-fns";
 import {
-  Calendar as CalendarIcon, LayoutGrid, CheckCircle2,
-  Car, Radio, RefreshCw
+  Calendar as CalendarIcon,
+  LayoutGrid,
+  CheckCircle2,
+  Car,
+  Radio,
+  RefreshCw,
 } from "lucide-react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { accessData as initialData } from "../data";
@@ -17,12 +21,18 @@ export default function DashboardPage() {
   const [data, setData] = useLocalStorage("parkcontrol_data_v2", initialData);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState("OCR");
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedDate, setSelectedDate] = useState(
+    format(new Date(), "yyyy-MM-dd"),
+  );
   const [activeBar, setActiveBar] = useState(null);
   const [showAll, setShowAll] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const dateInputRef = useRef(null);
 
-  const handleOpenModal = (type) => { setModalType(type); setModalOpen(true); };
+  const handleOpenModal = (type) => {
+    setModalType(type);
+    setModalOpen(true);
+  };
 
   const handleAddEntry = (newEntry) => {
     const entry = {
@@ -41,23 +51,37 @@ export default function DashboardPage() {
     try {
       if (isToday(parseISO(selectedDate))) return "Hoy";
       return format(parseISO(selectedDate), "dd MMM");
-    } catch { return selectedDate; }
+    } catch {
+      return selectedDate;
+    }
+  };
+
+  const matchesSearch = (item) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      item.placa?.toLowerCase().includes(q) ||
+      item.unidad?.toLowerCase().includes(q) ||
+      item.residente?.toLowerCase().includes(q)
+    );
   };
 
   const chartData = React.useMemo(() => {
     const hours = Array(13).fill(0);
-    data.filter(item => item.fecha === selectedDate).forEach(item => {
-      const parts = item.hora.match(/(\d+):(\d+)\s+(AM|PM)/i);
-      if (parts) {
-        let h = parseInt(parts[1], 10);
-        if (h === 12) h = 0;
-        if (parts[3].toUpperCase() === "PM") h += 12;
-        const index = h - 6;
-        if (index >= 0 && index < 13) hours[index]++;
-      }
-    });
+    data
+      .filter((item) => item.fecha === selectedDate)
+      .forEach((item) => {
+        const parts = item.hora.match(/(\d+):(\d+)\s+(AM|PM)/i);
+        if (parts) {
+          let h = parseInt(parts[1], 10);
+          if (h === 12) h = 0;
+          if (parts[3].toUpperCase() === "PM") h += 12;
+          const index = h - 6;
+          if (index >= 0 && index < 13) hours[index]++;
+        }
+      });
     const maxCount = Math.max(...hours, 1);
-    return hours.map(count => ({
+    return hours.map((count) => ({
       height: (count / maxCount) * 100,
       label: count > 0 ? count.toString() : "",
       realCount: count,
@@ -65,8 +89,9 @@ export default function DashboardPage() {
   }, [data, selectedDate]);
 
   const filteredData = React.useMemo(() => {
-    return data.filter(item => {
+    return data.filter((item) => {
       if (item.fecha !== selectedDate) return false;
+      if (!matchesSearch(item)) return false;
       if (activeBar === null) return true;
 
       const hour24 = 6 + activeBar;
@@ -77,23 +102,32 @@ export default function DashboardPage() {
       const parts = item.hora.match(/(\d+):(\d+)\s+(AM|PM)/i);
       if (!parts) return false;
 
-      return parseInt(parts[1], 10) === expectedHour12 &&
-             parts[3].toUpperCase() === expectedAmPm;
+      return (
+        parseInt(parts[1], 10) === expectedHour12 &&
+        parts[3].toUpperCase() === expectedAmPm
+      );
     });
-  }, [data, selectedDate, activeBar]);
+  }, [data, selectedDate, activeBar, searchQuery]);
 
-  const allDayData = React.useMemo(() =>
-    data.filter(item => item.fecha === selectedDate),
-    [data, selectedDate]
+  const allDayData = React.useMemo(
+    () =>
+      data.filter((item) => item.fecha === selectedDate && matchesSearch(item)),
+    [data, selectedDate, searchQuery],
   );
 
   const stats = React.useMemo(() => {
     const capacity = 450;
     const baseOccupied = 330;
-    const relevantData = data.filter(item => item.fecha === selectedDate);
-    const entradas = relevantData.filter(i => i.estado?.includes("Entrada")).length;
-    const salidas = relevantData.filter(i => i.estado?.includes("Salida")).length;
-    const pendientes = relevantData.filter(i => i.estado?.includes("Pendiente")).length;
+    const relevantData = data.filter((item) => item.fecha === selectedDate);
+    const entradas = relevantData.filter((i) =>
+      i.estado?.includes("Entrada"),
+    ).length;
+    const salidas = relevantData.filter((i) =>
+      i.estado?.includes("Salida"),
+    ).length;
+    const pendientes = relevantData.filter((i) =>
+      i.estado?.includes("Pendiente"),
+    ).length;
     const occupied = baseOccupied + entradas - salidas;
     return {
       capacity,
@@ -116,14 +150,17 @@ export default function DashboardPage() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
       <div className="max-w-6xl mx-auto">
-
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight leading-none mb-2">Panel de Control</h2>
-            <p className="text-[14px] text-slate-500">Estado del recinto en tiempo real</p>
+            <h2 className="text-[28px] font-bold text-slate-900 tracking-tight leading-none mb-2">
+              Panel de Control
+            </h2>
+            <p className="text-[14px] text-slate-500">
+              Estado del recinto en tiempo real
+            </p>
           </div>
           <div className="flex items-center space-x-3">
             <button
@@ -159,8 +196,6 @@ export default function DashboardPage() {
             subtitle="Espacios asignados y de visitantes"
             icon={LayoutGrid}
           />
-
-          {/* AVAILABLE - card especial */}
           <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-[40px] -z-0"></div>
             <div className="relative z-10">
@@ -169,16 +204,21 @@ export default function DashboardPage() {
                   <div className="p-2 bg-emerald-500 rounded-full text-white">
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
-                  <h3 className="text-[11px] font-bold text-emerald-800 uppercase tracking-widest">DISPONIBLE</h3>
+                  <h3 className="text-[11px] font-bold text-emerald-800 uppercase tracking-widest">
+                    DISPONIBLE
+                  </h3>
                 </div>
               </div>
               <div className="mt-4">
-                <div className="text-3xl font-bold text-slate-900">{stats.available}</div>
-                <p className="text-sm text-slate-500 mt-1">24% de la capacidad total</p>
+                <div className="text-3xl font-bold text-slate-900">
+                  {stats.available}
+                </div>
+                <p className="text-sm text-slate-500 mt-1">
+                  24% de la capacidad total
+                </p>
               </div>
             </div>
           </div>
-
           <StatCard
             title="OCUPADAS"
             value={stats.occupied}
@@ -214,7 +254,6 @@ export default function DashboardPage() {
             />
           </div>
         </div>
-
       </div>
 
       <Modal
