@@ -17,6 +17,8 @@ export default function ParkingMapPage() {
     showDetailsModal,
     handleSelect,
     closeModal,
+    reassignSpot,
+    toggleMaintenance,
   } = useParkingSelection();
 
   const filteredSpots = useMemo(() => {
@@ -56,7 +58,11 @@ export default function ParkingMapPage() {
           />
         </div>
         <div className="hidden lg:block lg:w-80 xl:w-96 flex-shrink-0">
-          <ParkingDetails spot={selectedSpot} />
+          <ParkingDetails
+            spot={selectedSpot}
+            onReassign={reassignSpot}
+            onToggleMaintenance={toggleMaintenance}
+          />
         </div>
       </div>
 
@@ -69,7 +75,12 @@ export default function ParkingMapPage() {
 
       {/* BOTTOM SHEET MOBILE */}
       {showDetailsModal && (
-        <DetailsBottomSheet spot={selectedSpot} onClose={closeModal} />
+        <DetailsBottomSheet
+          spot={selectedSpot}
+          onClose={closeModal}
+          onReassign={reassignSpot}
+          onToggleMaintenance={toggleMaintenance}
+        />
       )}
     </MainLayout>
   );

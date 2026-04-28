@@ -12,7 +12,7 @@ export function useParkingSelection() {
     getOccupancy().then(setOccupancy);
   }, []);
 
-  const selectedSpot = spots.find(s => s.id === selectedId);
+  const selectedSpot = spots.find((s) => s.id === selectedId);
 
   const handleSelect = (id) => {
     setSelectedId(id);
@@ -21,6 +21,28 @@ export function useParkingSelection() {
 
   const closeModal = () => setShowDetailsModal(false);
 
+  const reassignSpot = (spotId, unit, plate) => {
+    setSpots((prev) =>
+      prev.map((s) =>
+        s.id === spotId ? { ...s, status: "occupied", unit, plate } : s,
+      ),
+    );
+  };
+
+  const toggleMaintenance = (spotId, newStatus) => {
+    setSpots((prev) =>
+      prev.map((s) =>
+        s.id === spotId
+          ? {
+              ...s,
+              status: newStatus,
+              unit: newStatus === "maintenance" ? null : s.unit,
+            }
+          : s,
+      ),
+    );
+  };
+
   return {
     spots,
     occupancy,
@@ -28,6 +50,8 @@ export function useParkingSelection() {
     selectedSpot,
     showDetailsModal,
     handleSelect,
-    closeModal
+    closeModal,
+    reassignSpot,
+    toggleMaintenance,
   };
 }
