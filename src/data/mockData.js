@@ -9,22 +9,24 @@ function formatDuration(minutes) {
 function generateMockData() {
   const data = [];
   const tipos = ['Residente', 'Invitado', 'Entrega', 'Servicio'];
-  const baseDate = new Date();
+  // Set base date to late April 2026
+  const baseDate = new Date('2026-04-28');
   
-  for (let i = 1; i <= 20; i++) {
-    const isToday = i <= 5;
-    const daysAgo = isToday ? 0 : Math.floor(Math.random() * 10) + 1;
+  for (let i = 1; i <= 50; i++) {
+    // Distribute data: first 10 for today, others spread over last 60 days
+    const isToday = i <= 10;
+    const daysAgo = isToday ? 0 : Math.floor(Math.random() * 60);
     
     const d = new Date(baseDate);
     d.setDate(d.getDate() - daysAgo);
     
-    // Format date consistently (e.g. Oct 17, 2023)
+    // Format date consistently (e.g. Apr 17, 2026)
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
     const fecha = d.toLocaleDateString('en-US', options);
     
-    const entryHour = 6 + Math.floor(Math.random() * 12); // 6 AM to 5 PM
+    const entryHour = 6 + Math.floor(Math.random() * 16); // 6 AM to 10 PM
     const entryMinute = Math.floor(Math.random() * 60);
-    const hasExited = Math.random() > 0.3; // 70% chance of having exited
+    const hasExited = Math.random() > 0.2; // 80% chance of having exited
     
     let durationMinutes = 0;
     let horaSalida = 'Aún dentro';
@@ -34,7 +36,7 @@ function generateMockData() {
     const horaEntrada = `${entryDisplayHour.toString().padStart(2, '0')}:${entryMinute.toString().padStart(2, '0')} ${entryAmPm}`;
 
     if (hasExited) {
-      durationMinutes = 15 + Math.floor(Math.random() * 300); // 15 mins to 5 hours
+      durationMinutes = 15 + Math.floor(Math.random() * 600); // 15 mins to 10 hours
       const totalExitMinutes = entryHour * 60 + entryMinute + durationMinutes;
       const exitHour24 = Math.floor(totalExitMinutes / 60) % 24;
       const exitMinute = totalExitMinutes % 60;
@@ -50,8 +52,8 @@ function generateMockData() {
       fecha,
       horaEntrada,
       horaSalida,
-      placa: `ABC-${1000 + i}`,
-      unidad: `Unit ${100 + (i % 15)}`,
+      placa: `${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${1000 + i}`,
+      unidad: `Unit ${101 + Math.floor(Math.random() * 20)}`,
       tipoOcupante,
       duracion: hasExited ? formatDuration(durationMinutes) : '--'
     });
