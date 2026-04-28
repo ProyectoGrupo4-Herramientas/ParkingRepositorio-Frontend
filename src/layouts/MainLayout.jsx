@@ -2,10 +2,22 @@ import { useState } from "react";
 import Sidebar from "../components/common/Sidebar";
 import Topbar from "../components/common/Topbar";
 import VehicleModal from "../components/VehicleModal";
+import { getVehicles, saveVehicles } from "../utils/localStorage";
 
 export default function MainLayout({ children, searchQuery, setSearchQuery }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSaveGlobalVehicle = (newVehicle) => {
+    const vehicles = getVehicles();
+    const updatedVehicles = [
+      ...vehicles,
+      { ...newVehicle, id: Date.now().toString() },
+    ];
+    saveVehicles(updatedVehicles);
+    // Optional: reload to update other pages or trigger a global event
+    // window.dispatchEvent(new Event('vehiclesUpdated'));
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -28,6 +40,7 @@ export default function MainLayout({ children, searchQuery, setSearchQuery }) {
       <VehicleModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveGlobalVehicle}
       />
     </div>
   );

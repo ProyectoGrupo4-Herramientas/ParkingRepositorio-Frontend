@@ -1,4 +1,3 @@
-import React from 'react';
 import { Database, Home, Clock, AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 
