@@ -76,14 +76,6 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
 
         {/* bottom */}
         <div className="px-2 mt-4 flex flex-col gap-1">
-          <NavLink
-            to="/support"
-            onClick={onClose}
-            className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-500 hover:bg-slate-100 rounded-lg"
-          >
-            <HelpCircle size={20} />
-            Soporte
-          </NavLink>
 
           <button className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-lg">
             <LogOut size={20} />
