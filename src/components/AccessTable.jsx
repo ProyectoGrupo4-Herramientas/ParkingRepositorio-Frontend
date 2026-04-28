@@ -39,7 +39,7 @@ const AccessTable = ({ data }) => {
                 <td className="px-6 py-4 font-bold text-slate-900">{row.placa}</td>
                 <td className="px-6 py-4 text-slate-600">{row.unidad}</td>
                 <td className="px-6 py-4">
-                  <Badge type={row.tipo} />
+                  <Badge type={row.tipoOcupante} />
                 </td>
                 <td className="px-6 py-4 text-right text-slate-700">
                   {row.duracion}
