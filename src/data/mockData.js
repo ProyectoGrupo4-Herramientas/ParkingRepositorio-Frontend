@@ -8,7 +8,7 @@ function formatDuration(minutes) {
 
 function generateMockData() {
   const data = [];
-  const tipos = ['Residente', 'Visitante', 'Entrega', 'Servicio'];
+  const tipos = ['Residente', 'Invitado', 'Entrega', 'Servicio'];
   const baseDate = new Date();
   
   for (let i = 1; i <= 20; i++) {
