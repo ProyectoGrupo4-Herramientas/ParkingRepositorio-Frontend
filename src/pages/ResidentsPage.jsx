@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import MainLayout from "../layouts/MainLayout";
 import StatsCards from "../components/StatsCards";
 import VehicleTable from "../components/VehicleTable";
@@ -8,6 +8,7 @@ import {
   saveVehicles,
   updateStatuses,
 } from "../utils/localStorage";
+import { format } from "date-fns";
 
 export default function Dashboard() {
   const [vehicles, setVehicles] = useState([]);
@@ -17,24 +18,58 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const loadedVehicles = getVehicles();
-    const updatedVehicles = updateStatuses(loadedVehicles);
-    setVehicles(updatedVehicles);
+    const handleStorageChange = () => {
+      const loadedVehicles = getVehicles();
+      const updatedVehicles = updateStatuses(loadedVehicles);
+      setVehicles(updatedVehicles);
+    };
+
+    handleStorageChange();
 
     const interval = setInterval(() => {
       setVehicles((prev) => updateStatuses(prev));
     }, 60000);
 
-    return () => clearInterval(interval);
+    window.addEventListener('vehiclesUpdated', handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('vehiclesUpdated', handleStorageChange);
+    };
   }, []);
 
   const handleAddVehicle = (newVehicle) => {
+    const newId = Date.now().toString();
     const updatedVehicles = [
+      { ...newVehicle, id: newId },
       ...vehicles,
-      { ...newVehicle, id: Date.now().toString() },
     ];
     setVehicles(updatedVehicles);
     saveVehicles(updatedVehicles);
+    window.dispatchEvent(new Event('vehiclesUpdated'));
+
+    // Sync to Dashboard (parkcontrol_data_v2) so it shows in metrics
+    try {
+      const dashboardData = JSON.parse(localStorage.getItem("parkcontrol_data_v2")) || [];
+      const newDashboardEntry = {
+        id: Date.now(),
+        fecha: format(new Date(), "yyyy-MM-dd"),
+        hora: format(new Date(), "hh:mm a"),
+        duracion: "--",
+        placa: newVehicle.plate,
+        unidad: newVehicle.unit || "--",
+        residente: newVehicle.owner,
+        vehiculo: "Registrado",
+        tipo: newVehicle.type,
+        estado: "Entrada Aprobada"
+      };
+      
+      const updatedDashboardData = [newDashboardEntry, ...dashboardData];
+      localStorage.setItem("parkcontrol_data_v2", JSON.stringify(updatedDashboardData));
+      window.dispatchEvent(new CustomEvent('local-storage-update-parkcontrol_data_v2', { detail: updatedDashboardData }));
+    } catch (e) {
+      console.error("Error updating dashboard data", e);
+    }
   };
 
   const filteredVehicles = useMemo(() => {
@@ -109,6 +144,13 @@ export default function Dashboard() {
               <option value="Temporal">Temporal</option>
             </select>
 
+            <input
+              type="text"
+              placeholder="Buscar placa o propietario..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-white border border-gray-200 rounded-md px-3 py-2 text-sm max-w-xs focus:ring-1 focus:ring-gray-900 focus:outline-none"
+            />
             <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
