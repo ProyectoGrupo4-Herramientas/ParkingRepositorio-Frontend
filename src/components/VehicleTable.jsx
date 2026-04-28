@@ -110,8 +110,8 @@ const VehicleTable = ({ vehicles, totalCount }) => {
         </table>
       </div>
       
-      <div className="bg-gray-50/50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-        <div className="text-sm text-gray-500">
+      <div className="bg-gray-50/50 px-4 md:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="text-sm text-gray-500 text-center sm:text-left">
           Mostrando <span className="font-medium">{startItem}</span> a <span className="font-medium">{endItem}</span> de <span className="font-medium">{vehicles.length}</span> entradas
           {totalCount !== vehicles.length && ` (filtrado de ${totalCount} en total)`}
         </div>
