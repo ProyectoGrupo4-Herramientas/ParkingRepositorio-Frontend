@@ -158,7 +158,7 @@ http://localhost:5173
 La aplicación se encuentra desplegada en la nube utilizando Vercel, lo que permite acceder al sistema sin necesidad de instalación local.
 
 Acceso a la aplicación:
-https://parkingrepositorio-frontend-desplie.vercel.app/
+[https://parkcontrol-cyan.vercel.app/](https://parkcontrol-cyan.vercel.app/)
 
 ---
 
