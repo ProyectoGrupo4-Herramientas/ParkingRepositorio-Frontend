@@ -2,21 +2,25 @@ import { useState } from "react";
 import Sidebar from "../components/common/Sidebar";
 import Topbar from "../components/common/Topbar";
 import VehicleModal from "../components/VehicleModal";
-import { getVehicles, saveVehicles } from "../utils/localStorage";
+import { useParking } from "../context/ParkingContext";
 
 export default function MainLayout({ children, searchQuery, setSearchQuery }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const { addVehicle } = useParking();
+
   const handleSaveGlobalVehicle = (newVehicle) => {
-    const vehicles = getVehicles();
-    const updatedVehicles = [
-      ...vehicles,
-      { ...newVehicle, id: Date.now().toString() },
-    ];
-    saveVehicles(updatedVehicles);
-    // Optional: reload to update other pages or trigger a global event
-    // window.dispatchEvent(new Event('vehiclesUpdated'));
+    addVehicle({
+      placa: newVehicle.plate,
+      unidad: newVehicle.unit,
+      propietario: newVehicle.owner,
+      vehiculoDesc: "",
+      tipoOcupante: newVehicle.type === "Residente" ? "residente" : "visitante",
+      estado: "activo",
+      fechaExpiracion: newVehicle.expiration || null,
+      espacioAsignado: null,
+    });
   };
 
   return (

@@ -1,116 +1,79 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import MainLayout from "../layouts/MainLayout";
 import StatsCards from "../components/StatsCards";
 import VehicleTable from "../components/VehicleTable";
 import VehicleModal from "../components/VehicleModal";
-import {
-  getVehicles,
-  saveVehicles,
-  updateStatuses,
-} from "../utils/localStorage";
-import { format } from "date-fns";
+import { useParking } from "../context/ParkingContext";
 
 export default function Residents() {
-  const [vehicles, setVehicles] = useState([]);
+  const { vehicles, addVehicle } = useParking();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos los Estados");
   const [typeFilter, setTypeFilter] = useState("Todos los Tipos");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const loadedVehicles = getVehicles();
-      const updatedVehicles = updateStatuses(loadedVehicles);
-      setVehicles(updatedVehicles);
-    };
-
-    handleStorageChange();
-
-    const interval = setInterval(() => {
-      setVehicles((prev) => updateStatuses(prev));
-    }, 60000);
-
-    window.addEventListener('vehiclesUpdated', handleStorageChange);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('vehiclesUpdated', handleStorageChange);
-    };
-  }, []);
+  const adaptedVehicles = vehicles.map((v) => ({
+    id: v.id,
+    plate: v.placa,
+    unit: v.unidad,
+    owner: v.propietario,
+    type: v.tipoOcupante === "residente" ? "Residente" : "Temporal",
+    status: v.estado === "activo" ? "Activo" : "Expirado",
+    expiration: v.fechaExpiracion,
+  }));
 
   const handleAddVehicle = (newVehicle) => {
-    const newId = Date.now().toString();
-    const updatedVehicles = [
-      { ...newVehicle, id: newId },
-      ...vehicles,
-    ];
-    setVehicles(updatedVehicles);
-    saveVehicles(updatedVehicles);
-    window.dispatchEvent(new Event('vehiclesUpdated'));
-
-    // Sync to Dashboard (parkcontrol_data_v2) so it shows in metrics
-    try {
-      const dashboardData = JSON.parse(localStorage.getItem("parkcontrol_data_v2")) || [];
-      const newDashboardEntry = {
-        id: Date.now(),
-        fecha: format(new Date(), "yyyy-MM-dd"),
-        hora: format(new Date(), "hh:mm a"),
-        duracion: "--",
-        placa: newVehicle.plate,
-        unidad: newVehicle.unit || "--",
-        residente: newVehicle.owner,
-        vehiculo: "Registrado",
-        tipo: newVehicle.type,
-        estado: "Entrada Aprobada"
-      };
-      
-      const updatedDashboardData = [newDashboardEntry, ...dashboardData];
-      localStorage.setItem("parkcontrol_data_v2", JSON.stringify(updatedDashboardData));
-      window.dispatchEvent(new CustomEvent('local-storage-update-parkcontrol_data_v2', { detail: updatedDashboardData }));
-    } catch (e) {
-      console.error("Error updating dashboard data", e);
-    }
+    addVehicle({
+      placa: newVehicle.plate,
+      unidad: newVehicle.unit,
+      propietario: newVehicle.owner,
+      vehiculoDesc: "",
+      tipoOcupante: newVehicle.type === "Residente" ? "residente" : "visitante",
+      estado: "activo",
+      fechaExpiracion: newVehicle.expiration || null,
+      espacioAsignado: null,
+    });
   };
 
   const filteredVehicles = useMemo(() => {
-    let filtered = vehicles;
+    let filtered = adaptedVehicles;
 
     if (statusFilter !== "Todos los Estados") {
       filtered = filtered.filter((v) => v.status === statusFilter);
     }
-
     if (typeFilter !== "Todos los Tipos") {
       filtered = filtered.filter((v) => v.type === typeFilter);
     }
-
     if (searchQuery) {
-      const lowerQuery = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (v) =>
-          v.plate.toLowerCase().includes(lowerQuery) ||
-          v.owner.toLowerCase().includes(lowerQuery) ||
-          v.unit.toLowerCase().includes(lowerQuery),
+          v.plate.toLowerCase().includes(q) ||
+          v.owner.toLowerCase().includes(q) ||
+          v.unit.toLowerCase().includes(q),
       );
     }
 
     return filtered;
-  }, [vehicles, searchQuery, statusFilter, typeFilter]);
+  }, [adaptedVehicles, searchQuery, statusFilter, typeFilter]);
 
-  const stats = useMemo(() => {
-    return {
-      total: vehicles.length,
-      activeResidents: vehicles.filter(
+  const stats = useMemo(
+    () => ({
+      total: adaptedVehicles.length,
+      activeResidents: adaptedVehicles.filter(
         (v) => v.type === "Residente" && v.status === "Activo",
       ).length,
-      temporalPasses: vehicles.filter((v) => v.type === "Temporal").length,
-      alerts: vehicles.filter((v) => v.status === "Expirado").length,
-    };
-  }, [vehicles]);
+      temporalPasses: adaptedVehicles.filter((v) => v.type === "Temporal")
+        .length,
+      alerts: adaptedVehicles.filter((v) => v.status === "Expirado").length,
+    }),
+    [adaptedVehicles],
+  );
 
   return (
     <MainLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
       <div className="max-w-7xl mx-auto space-y-6 p-8">
-        {/* HEADER */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">
@@ -176,7 +139,7 @@ export default function Residents() {
 
         <VehicleTable
           vehicles={filteredVehicles}
-          totalCount={vehicles.length}
+          totalCount={adaptedVehicles.length}
         />
       </div>
 
