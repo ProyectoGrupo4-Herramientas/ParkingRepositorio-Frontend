@@ -14,11 +14,19 @@ import {
   Radio,
   RefreshCw,
 } from "lucide-react";
-import { useLocalStorage } from "../hooks/useLocalStorage";
-import { accessData as initialData } from "../data";
+import { useParking } from "../context/ParkingContext";
 
 export default function DashboardPage() {
-  const [data, setData] = useLocalStorage("parkcontrol_data_v2", initialData);
+  const {
+    accessLog,
+    vehicles,
+    spacesAvailable,
+    spacesOccupied,
+    grantAccess,
+    registerManual,
+    addVehicle,
+  } = useParking();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState("OCR");
   const [selectedDate, setSelectedDate] = useState(
@@ -34,15 +42,53 @@ export default function DashboardPage() {
     setModalOpen(true);
   };
 
+  const adaptedData = accessLog.map((log) => ({
+    id: log.id,
+    fecha: log.fecha,
+    hora: log.horaEntrada ? `${log.horaEntrada}` : "--",
+    placa: log.placa,
+    vehiculo: log.vehiculoDesc || "Desconocido",
+    residente: log.propietario || "Desconocido",
+    unidad: log.unidad || "--",
+    tipo:
+      log.tipoOcupante === "residente"
+        ? "Residente"
+        : log.tipoOcupante === "visitante"
+          ? "Invitado"
+          : log.tipoOcupante === "desconocido"
+            ? "Alerta"
+            : "Invitado",
+    estado:
+      log.estadoEntrada === "entrada_aprobada"
+        ? "Entrada Aprobada"
+        : log.estadoEntrada === "salida_registrada"
+          ? "Salida Registrada"
+          : "Pendiente Manual",
+  }));
+
   const handleAddEntry = (newEntry) => {
-    const entry = {
-      id: Date.now(),
-      fecha: selectedDate,
-      hora: format(new Date(), "hh:mm a"),
-      duracion: "--",
-      ...newEntry,
-    };
-    setData([entry, ...data]);
+    if (newEntry.tipo === "Alerta") {
+      registerManual(newEntry.placa, newEntry.residente);
+    } else {
+      grantAccess(newEntry.placa);
+
+      // Si no existe en vehículos, agregarlo como temporal/visitante
+      const yaExiste = vehicles.find(
+        (v) => v.placa.toUpperCase() === newEntry.placa.toUpperCase(),
+      );
+      if (!yaExiste) {
+        addVehicle({
+          placa: newEntry.placa.toUpperCase(),
+          vehiculoDesc: newEntry.vehiculo || "Desconocido",
+          propietario: newEntry.residente || "Invitado",
+          unidad: newEntry.unidad || "--",
+          tipoOcupante: "visitante",
+          estado: "activo",
+          fechaExpiracion: null,
+          espacioAsignado: null,
+        });
+      }
+    }
   };
 
   const handleRefresh = () => window.location.reload();
@@ -68,17 +114,12 @@ export default function DashboardPage() {
 
   const chartData = React.useMemo(() => {
     const hours = Array(13).fill(0);
-    data
+    adaptedData
       .filter((item) => item.fecha === selectedDate)
       .forEach((item) => {
-        const parts = item.hora.match(/(\d+):(\d+)\s+(AM|PM)/i);
-        if (parts) {
-          let h = parseInt(parts[1], 10);
-          if (h === 12) h = 0;
-          if (parts[3].toUpperCase() === "PM") h += 12;
-          const index = h - 6;
-          if (index >= 0 && index < 13) hours[index]++;
-        }
+        const [h] = item.hora.trim().split(":").map(Number);
+        const index = h - 6;
+        if (index >= 0 && index < 13) hours[index]++;
       });
     const maxCount = Math.max(...hours, 1);
     return hours.map((count) => ({
@@ -86,57 +127,43 @@ export default function DashboardPage() {
       label: count > 0 ? count.toString() : "",
       realCount: count,
     }));
-  }, [data, selectedDate]);
+  }, [adaptedData, selectedDate]);
 
   const filteredData = React.useMemo(() => {
-    return data.filter((item) => {
+    return adaptedData.filter((item) => {
       if (item.fecha !== selectedDate) return false;
       if (!matchesSearch(item)) return false;
       if (activeBar === null) return true;
-
-      const hour24 = 6 + activeBar;
-      const expectedAmPm = hour24 >= 12 ? "PM" : "AM";
-      let expectedHour12 = hour24 % 12;
-      if (expectedHour12 === 0) expectedHour12 = 12;
-
-      const parts = item.hora.match(/(\d+):(\d+)\s+(AM|PM)/i);
-      if (!parts) return false;
-
-      return (
-        parseInt(parts[1], 10) === expectedHour12 &&
-        parts[3].toUpperCase() === expectedAmPm
-      );
+      const targetHour = 6 + activeBar;
+      const [h] = item.hora.trim().split(":").map(Number);
+      return h === targetHour;
     });
-  }, [data, selectedDate, activeBar, searchQuery]);
+  }, [adaptedData, selectedDate, activeBar, searchQuery]);
 
   const allDayData = React.useMemo(
     () =>
-      data.filter((item) => item.fecha === selectedDate && matchesSearch(item)),
-    [data, selectedDate, searchQuery],
+      adaptedData.filter(
+        (item) => item.fecha === selectedDate && matchesSearch(item),
+      ),
+    [adaptedData, selectedDate, searchQuery],
   );
 
   const stats = React.useMemo(() => {
-    const capacity = 450;
-    const baseOccupied = 330;
-    const relevantData = data.filter((item) => item.fecha === selectedDate);
-    const entradas = relevantData.filter((i) =>
-      i.estado?.includes("Entrada"),
+    const capacity = spacesAvailable + spacesOccupied;
+    const relevantData = adaptedData.filter(
+      (item) => item.fecha === selectedDate,
+    );
+    const entradas = relevantData.filter(
+      (i) => i.estado === "Entrada Aprobada",
     ).length;
-    const salidas = relevantData.filter((i) =>
-      i.estado?.includes("Salida"),
-    ).length;
-    const pendientes = relevantData.filter((i) =>
-      i.estado?.includes("Pendiente"),
-    ).length;
-    const occupied = baseOccupied + entradas - salidas;
     return {
       capacity,
-      available: capacity - occupied,
-      occupied,
-      active: occupied + pendientes + 4,
+      available: spacesAvailable,
+      occupied: spacesOccupied,
+      active: spacesOccupied,
       activeTrend: entradas,
     };
-  }, [data, selectedDate]);
+  }, [adaptedData, selectedDate, spacesAvailable, spacesOccupied]);
 
   const handleBarSelect = (index) => {
     setActiveBar(activeBar === index ? null : index);
@@ -152,7 +179,6 @@ export default function DashboardPage() {
   return (
     <MainLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
       <div className="max-w-6xl mx-auto">
-        {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h2 className="text-[28px] font-bold text-slate-900 tracking-tight leading-none mb-2">
@@ -165,9 +191,7 @@ export default function DashboardPage() {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => dateInputRef.current?.showPicker()}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100
-                rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-200
-                transition-colors border border-slate-200 cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-200 transition-colors border border-slate-200 cursor-pointer"
             >
               <CalendarIcon className="w-4 h-4" />
               {getButtonDateText()}
@@ -188,16 +212,15 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <StatCard
             title="CAPACIDAD TOTAL"
             value={stats.capacity}
-            subtitle="Espacios asignados y de visitantes"
+            subtitle="Espacios totales"
             icon={LayoutGrid}
           />
           <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-[40px] -z-0"></div>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-[40px] -z-0" />
             <div className="relative z-10">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
@@ -214,7 +237,10 @@ export default function DashboardPage() {
                   {stats.available}
                 </div>
                 <p className="text-sm text-slate-500 mt-1">
-                  24% de la capacidad total
+                  {stats.capacity > 0
+                    ? Math.round((stats.available / stats.capacity) * 100)
+                    : 0}
+                  % de la capacidad total
                 </p>
               </div>
             </div>
@@ -222,7 +248,7 @@ export default function DashboardPage() {
           <StatCard
             title="OCUPADAS"
             value={stats.occupied}
-            subtitle="76% de la tasa de ocupación"
+            subtitle={`${stats.capacity > 0 ? Math.round((stats.occupied / stats.capacity) * 100) : 0}% de la tasa de ocupación`}
             icon={Car}
           />
           <StatCard
@@ -235,7 +261,6 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* CONTENT */}
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="w-full lg:w-[320px] flex flex-col">
             <QuickActions onOpenModal={handleOpenModal} />
