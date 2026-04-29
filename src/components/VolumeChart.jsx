@@ -7,7 +7,7 @@ const VolumeChart = ({ activeBar, onBarSelect, data }) => {
     <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 h-[320px] flex flex-col">
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-lg font-semibold text-slate-900">Volumen de Entrada</h3>
-        <span className="text-xs font-medium text-slate-500">Today</span>
+        <span className="text-xs font-medium text-slate-500">Hoy</span>
       </div>
 
       <div className="flex-1 flex items-end justify-between px-2 gap-2 relative">
