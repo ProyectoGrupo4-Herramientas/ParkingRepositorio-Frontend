@@ -62,10 +62,10 @@ const Filters = ({
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm appearance-none"
             >
               <option>Todas las Unidades</option>
-              <option>Unidad 105</option>
-              <option>Unidad 301</option>
-              <option>Unidad 402</option>
-              <option>Unidad 510</option>
+              <option>Unit 105</option>
+              <option>Unit 301</option>
+              <option>Unit 402</option>
+              <option>Unit 510</option>
             </select>
             <ChevronDown className="absolute right-2 top-2.5 w-4 h-4 text-slate-400" />
           </div>
