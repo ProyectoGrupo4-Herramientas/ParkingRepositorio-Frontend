@@ -13,11 +13,16 @@ export default function HistoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [unitFilter, setUnitFilter] = useState("Todas las Unidades");
   const [typeFilter, setTypeFilter] = useState("Todos");
+
+  // 🔥 NUEVO
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 10;
 
-  // Adaptar accessLog al formato que espera AccessTable
+  // 🔹 DATA ORIGINAL (NO TOCADA)
   const data = accessLog.map((log) => ({
     id: log.id,
     fecha: log.fecha,
@@ -25,12 +30,12 @@ export default function HistoryPage() {
     horaSalida: log.horaSalida || "Aún dentro",
     placa: log.placa,
     unidad: log.unidad || "--",
-    tipo:
+    tipoOcupante:
       log.tipoOcupante === "residente"
         ? "Residente"
         : log.tipoOcupante === "visitante"
-          ? "Invitado"
-          : "Desconocido",
+        ? "Invitado"
+        : "Desconocido",
     duracion: log.duracion || "--",
   }));
 
@@ -43,7 +48,8 @@ export default function HistoryPage() {
         item.unidad.toLowerCase().includes(q);
 
       const matchUnit =
-        unitFilter === "Todas las Unidades" || item.unidad === unitFilter;
+        unitFilter === "Todas las Unidades" ||
+        item.unidad === unitFilter;
 
       let matchType = true;
       if (typeFilter === "Entradas") {
@@ -52,14 +58,33 @@ export default function HistoryPage() {
         matchType = item.horaSalida !== "Aún dentro";
       }
 
-      return matchSearch && matchUnit && matchType;
+      let matchDate = true;
+
+      if (startDate || endDate) {
+        const itemDate = new Date(item.fecha);
+
+        if (!isNaN(itemDate)) {
+          if (startDate) {
+            const sDate = new Date(startDate + "T00:00:00");
+            if (itemDate < sDate) matchDate = false;
+          }
+
+          if (endDate) {
+            const eDate = new Date(endDate + "T23:59:59");
+            if (itemDate > eDate) matchDate = false;
+          }
+        }
+      }
+
+      return matchSearch && matchUnit && matchType && matchDate;
     });
-  }, [data, searchQuery, searchTerm, unitFilter, typeFilter]);
+  }, [data, searchQuery, searchTerm, unitFilter, typeFilter, startDate, endDate]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+
   const currentData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   return (
@@ -74,6 +99,10 @@ export default function HistoryPage() {
           setUnitFilter={setUnitFilter}
           typeFilter={typeFilter}
           setTypeFilter={setTypeFilter}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
         />
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -83,6 +112,7 @@ export default function HistoryPage() {
             <span className="text-sm text-slate-500">
               Mostrando {currentData.length} de {filteredData.length} registros
             </span>
+
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

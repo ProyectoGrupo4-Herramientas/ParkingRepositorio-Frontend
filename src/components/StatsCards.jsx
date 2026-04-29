@@ -15,7 +15,7 @@ const Card = ({ title, value, icon: Icon, colorClass, borderColorClass }) => (
 
 const StatsCards = ({ stats }) => {
   return (
-    <div className="grid grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       <Card 
         title="TOTAL REGISTRADOS" 
         value={stats.total} 
