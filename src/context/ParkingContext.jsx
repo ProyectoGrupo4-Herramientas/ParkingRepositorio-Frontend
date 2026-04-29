@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useCallback } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { mockData } from "../data/mockData";
 import {
   initialVehicles,
   initialParkingSpaces,
@@ -10,6 +11,44 @@ import {
 import { format } from "date-fns";
 
 const ParkingContext = createContext(null);
+
+const convertTo24h = (time) => {
+  if (!time) return null;
+
+  const [hourMin, modifier] = time.split(" ");
+  let [hours, minutes] = hourMin.split(":");
+
+  if (modifier === "PM" && hours !== "12") {
+    hours = String(parseInt(hours, 10) + 12);
+  }
+  if (modifier === "AM" && hours === "12") {
+    hours = "00";
+  }
+
+  return `${hours.padStart(2, "0")}:${minutes}`;
+};
+
+const transformMockData = (data) => {
+  return data.map((item) => ({
+    id: `mock_${item.id}`,
+    vehiculoId: null,
+    placa: item.placa,
+    propietario: "Desconocido",
+    unidad: item.unidad,
+    tipoOcupante: item.tipoOcupante.toLowerCase(),
+    vehiculoDesc: "Desconocido",
+    espacioId: null,
+    fecha: new Date(item.fecha).toISOString().split("T")[0],
+    horaEntrada: convertTo24h(item.horaEntrada),
+    horaSalida:
+      item.horaSalida === "Aún dentro" ? null : convertTo24h(item.horaSalida),
+    duracion: item.duracion === "--" ? null : item.duracion,
+    estadoEntrada:
+      item.horaSalida === "Aún dentro"
+        ? "entrada_aprobada"
+        : "salida_registrada",
+  }));
+};
 
 export function ParkingProvider({ children }) {
   const [vehicles, setVehicles] = useLocalStorage(
@@ -20,10 +59,10 @@ export function ParkingProvider({ children }) {
     "parking_spaces",
     initialParkingSpaces,
   );
-  const [accessLog, setAccessLog] = useLocalStorage(
-    "parking_accesslog",
-    initialAccessLog,
-  );
+  const [accessLog, setAccessLog] = useLocalStorage("parking_accesslog", [
+    ...initialAccessLog,
+    ...transformMockData(mockData),
+  ]);
   const [notifications, setNotifications] = useLocalStorage(
     "parking_notifications",
     [],

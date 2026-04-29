@@ -5,6 +5,7 @@ import AccessTable from "../components/AccessTable";
 import Filters from "../components/Filters";
 import Pagination from "../components/Pagination";
 import { useParking } from "../context/ParkingContext";
+import { X } from "lucide-react";
 
 export default function HistoryPage() {
   const { accessLog } = useParking();
@@ -14,7 +15,6 @@ export default function HistoryPage() {
   const [unitFilter, setUnitFilter] = useState("Todas las Unidades");
   const [typeFilter, setTypeFilter] = useState("Todos");
 
-  // 🔥 NUEVO
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -22,7 +22,17 @@ export default function HistoryPage() {
 
   const itemsPerPage = 10;
 
-  // 🔹 DATA ORIGINAL (NO TOCADA)
+  // 🧹 Función para limpiar todos los filtros
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSearchTerm("");
+    setUnitFilter("Todas las Unidades");
+    setTypeFilter("Todos");
+    setStartDate("");
+    setEndDate("");
+    setCurrentPage(1);
+  };
+
   const data = accessLog.map((log) => ({
     id: log.id,
     fecha: log.fecha,
@@ -103,6 +113,7 @@ export default function HistoryPage() {
           setStartDate={setStartDate}
           endDate={endDate}
           setEndDate={setEndDate}
+          onClearFilters={handleClearFilters}
         />
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">

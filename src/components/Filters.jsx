@@ -1,11 +1,12 @@
-import { Calendar, ChevronDown } from "lucide-react";
+import { Calendar, ChevronDown, RefreshCw } from "lucide-react";
 
 const Filters = ({ 
   searchTerm, setSearchTerm, 
   unitFilter, setUnitFilter, 
   typeFilter, setTypeFilter,
   startDate, setStartDate,
-  endDate, setEndDate
+  endDate, setEndDate,
+  onClearFilters
 }) => {
   return (
     <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
@@ -92,6 +93,14 @@ const Filters = ({
             }`}
           >
             Salidas
+          </button>
+
+          <button
+            onClick={onClearFilters}
+            className="p-2.5 bg-slate-100 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors border border-slate-200"
+            title="Limpiar filtros"
+          >
+            <RefreshCw className="w-5 h-5" />
           </button>
         </div>
 
