@@ -62,16 +62,16 @@ const Header = ({ dataToExport }) => {
       <div className="flex items-center gap-3 flex-wrap">
         <button
           onClick={handleExportPDF}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs"
+          className="flex items-center gap-2 px-4 py-2 bg-brand text-white border border-brand rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors shadow-xs"
         >
-          <FileText size={16} className="text-slate-500" />
+          <FileText size={16} className="text-white" />
           Exportar PDF
         </button>
         <button
           onClick={handleExportExcel}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs"
+          className="flex items-center gap-2 px-4 py-2 bg-brand text-white border border-brand rounded-lg text-sm font-medium hover:bg-brand-dark transition-colors shadow-xs"
         >
-          <Sheet size={16} className="text-slate-500" />
+          <Sheet size={16} className="text-white" />
           Exportar Excel
         </button>
       </div>
