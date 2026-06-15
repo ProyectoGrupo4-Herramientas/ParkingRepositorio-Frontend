@@ -25,7 +25,7 @@ const Pagination = ({ currentPage, totalPages, setCurrentPage }) => {
             min-w-8 h-8 flex items-center justify-center text-sm rounded-md font-medium transition-colors
             ${
               page === currentPage
-                ? "bg-black text-white"
+                ? "bg-brand text-white"
                 : page === "…"
                   ? "text-slate-400 cursor-default"
                   : "text-slate-600 hover:bg-slate-100"

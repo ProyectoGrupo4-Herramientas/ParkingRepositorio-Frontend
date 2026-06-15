@@ -28,7 +28,7 @@ export default function MaintenanceModal({ isEntering, onConfirm, onCancel }) {
             onClick={() => onConfirm(isEntering ? "maintenance" : "available")}
             className={`flex-1 text-white rounded-xl py-2 ${
               isEntering
-                ? "bg-slate-900 hover:bg-slate-700"
+                ? "bg-brand hover:bg-brand-dark"
                 : "bg-green-600 hover:bg-green-700"
             }`}
           >

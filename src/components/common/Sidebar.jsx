@@ -46,7 +46,7 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
         <div className="px-4 mb-6">
           <button
             onClick={onOpenModal}
-            className="w-full bg-slate-900 text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-slate-700"
+            className="w-full bg-brand text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-brand-dark"
           >
             <PlusCircle size={18} />
             Registrar Nuevo Vehículo

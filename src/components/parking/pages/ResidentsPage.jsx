@@ -150,7 +150,7 @@ export default function Residents() {
             {/* BOTÓN */}
             <button
   onClick={() => setIsModalOpen(true)}
-  className="flex items-center justify-center gap-2 bg-gray-900 text-white px-3 py-2 text-sm rounded-md hover:bg-gray-800 whitespace-nowrap"
+  className="flex items-center justify-center gap-2 bg-brand text-white px-3 py-2 text-sm rounded-md hover:bg-brand-dark whitespace-nowrap"
 >
   <svg
     className="w-4 h-4 shrink-0"

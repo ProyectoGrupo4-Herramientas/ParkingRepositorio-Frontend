@@ -66,10 +66,10 @@ export default function VehicleEntry() {
                 onClick={() => setPuerta(p)}
                 disabled={yaAdentro}
                 className={`py-2 px-3 rounded text-sm font-bold border transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
-                  puerta === p
-                    ? "bg-slate-900 text-white border-slate-900"
-                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                }`}
+                   puerta === p
+                     ? "bg-brand text-white border-brand"
+                     : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                 }`}
               >
                 <span className="material-symbols-outlined text-base">videocam</span>
                 {p}
@@ -95,8 +95,8 @@ export default function VehicleEntry() {
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-1">Tipo de Ocupante</label>
             <div className="flex border border-slate-300 rounded overflow-hidden">
-              <div className={`flex-1 py-2 text-sm font-bold text-center ${esResidente && ficha ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-600"}`}>Residente</div>
-              <div className={`flex-1 py-2 text-sm font-bold text-center ${!esResidente && ficha ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-600"}`}>Visitante</div>
+              <div className={`flex-1 py-2 text-sm font-bold text-center ${esResidente && ficha ? "bg-brand text-white" : "bg-slate-50 text-slate-600"}`}>Residente</div>
+              <div className={`flex-1 py-2 text-sm font-bold text-center ${!esResidente && ficha ? "bg-brand text-white" : "bg-slate-50 text-slate-600"}`}>Visitante</div>
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function VehicleEntry() {
           <button
             onClick={() => setShowModal(true)}
             disabled={!ficha}
-            className="w-full bg-slate-900 text-white py-3 px-4 rounded font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-brand text-white py-3 px-4 rounded font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-sm">login</span>
             Conceder Acceso y Abrir Puerta
@@ -197,7 +197,7 @@ export default function VehicleEntry() {
               )}
               <div className="flex gap-3 justify-end">
                 <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded font-bold text-slate-600 hover:bg-slate-100">Cancelar</button>
-                <button onClick={handleGrantAccess} className="px-4 py-2 rounded font-bold bg-slate-900 text-white hover:bg-slate-800">Confirmar</button>
+                <button onClick={handleGrantAccess} className="px-4 py-2 rounded font-bold bg-brand text-white hover:bg-brand-dark">Confirmar</button>
               </div>
             </div>
           </div>

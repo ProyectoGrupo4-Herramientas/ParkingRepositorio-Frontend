@@ -184,7 +184,7 @@ export default function CameraPanel({ onDetected }) {
             type="button"
             onClick={handleScan}
             disabled={status !== "ready"}
-            className="flex-1 py-2.5 rounded-lg font-bold bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 rounded-lg font-bold bg-brand text-white hover:bg-brand-dark disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-base">
               {status === "scanning" ? "hourglass_top" : "document_scanner"}

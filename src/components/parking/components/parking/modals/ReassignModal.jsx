@@ -202,7 +202,7 @@ export default function ReassignModal({ onConfirm, onCancel }) {
           <button
             disabled={!canConfirm}
             onClick={() => onConfirm(selected, plate)}
-            className="flex-1 bg-slate-900 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-slate-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex-1 bg-brand text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Confirmar
           </button>

@@ -134,7 +134,7 @@ const VehicleTable = ({ vehicles, totalCount }) => {
                   className={clsx(
                     "px-3 py-1 rounded-md text-sm font-medium transition-colors",
                     page === currentPage 
-                      ? "bg-gray-900 text-white" 
+                      ? "bg-brand text-white" 
                       : typeof page === 'number' 
                         ? "text-gray-600 hover:bg-gray-100 cursor-pointer" 
                         : "text-gray-400 cursor-default"

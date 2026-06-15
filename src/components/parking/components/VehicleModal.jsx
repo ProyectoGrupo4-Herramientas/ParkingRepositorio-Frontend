@@ -162,7 +162,7 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
                         <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-md">
                             Cancelar
                         </button>
-                        <button type="submit" className="px-4 py-2 bg-black text-white rounded-md">
+                        <button type="submit" className="px-4 py-2 bg-brand text-white rounded-md">
                             Guardar
                         </button>
                     </div>
