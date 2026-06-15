@@ -6,25 +6,25 @@ const AccessTable = ({ data }) => {
       <table className="w-full text-left text-sm whitespace-nowrap">
         <thead>
           <tr className="border-b border-slate-200 bg-white">
-            <th className="px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
+            <th className="px-3 sm:px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
               FECHA
             </th>
-            <th className="px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
+            <th className="px-3 sm:px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
               HORA ENTRADA
             </th>
-            <th className="px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
+            <th className="px-3 sm:px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
               HORA SALIDA
             </th>
-            <th className="px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
+            <th className="px-3 sm:px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
               PLACA
             </th>
-            <th className="px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
+            <th className="px-3 sm:px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
               UNIDAD
             </th>
-            <th className="px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
+            <th className="px-3 sm:px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider">
               TIPO DE OCUPANTE
             </th>
-            <th className="px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider text-right">
+            <th className="px-3 sm:px-6 py-4 font-semibold text-xs text-slate-500 tracking-wider text-right">
               DURACIÓN TOTAL
             </th>
           </tr>
@@ -36,14 +36,14 @@ const AccessTable = ({ data }) => {
                 key={row.id}
                 className="hover:bg-slate-50/50 transition-colors bg-white"
               >
-                <td className="px-6 py-4 text-slate-700">{row.fecha}</td>
-                <td className="px-6 py-4">
+                <td className="px-3 sm:px-6 py-4 text-slate-700">{row.fecha}</td>
+                <td className="px-3 sm:px-6 py-4">
                   <div className="flex items-center gap-1.5 text-emerald-600 font-medium">
                     <ArrowRightToLine size={14} className="opacity-80" />
                     {row.horaEntrada}
                   </div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-3 sm:px-6 py-4">
                   {row.horaSalida === "Aún dentro" ? (
                     <span className="text-slate-400 italic">Aún dentro</span>
                   ) : (
@@ -53,14 +53,14 @@ const AccessTable = ({ data }) => {
                     </div>
                   )}
                 </td>
-                <td className="px-6 py-4 font-bold text-slate-900">
+                <td className="px-3 sm:px-6 py-4 font-bold text-slate-900">
                   {row.placa}
                 </td>
-                <td className="px-6 py-4 text-slate-600">{row.unidad}</td>
-                <td className="px-6 py-4">
+                <td className="px-3 sm:px-6 py-4 text-slate-600">{row.unidad}</td>
+                <td className="px-3 sm:px-6 py-4">
                   <Badge type={row.tipoOcupante} />
                 </td>
-                <td className="px-6 py-4 text-right text-slate-700">
+                <td className="px-3 sm:px-6 py-4 text-right text-slate-700">
                   {row.duracion}
                 </td>
               </tr>

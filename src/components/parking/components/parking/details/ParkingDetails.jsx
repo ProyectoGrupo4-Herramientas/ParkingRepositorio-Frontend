@@ -66,7 +66,7 @@ export default function ParkingDetails({
         />
       )}
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 flex flex-col gap-5">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 flex flex-col gap-5">
         {/* ENCABEZADO */}
         <div className="flex items-start justify-between">
           <div>

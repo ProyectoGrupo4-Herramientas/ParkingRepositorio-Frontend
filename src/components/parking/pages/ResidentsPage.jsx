@@ -87,7 +87,7 @@ export default function Residents() {
 
   return (
     <ParkingLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
-      <div className="max-w-7xl mx-auto space-y-6 p-8">
+      <div className="max-w-7xl mx-auto space-y-6 p-4 sm:p-8">
 
         {/* HEADER */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
@@ -100,13 +100,13 @@ export default function Residents() {
             </p>
           </div>
 
-          <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 md:gap-4 w-full xl:w-auto">
+          <div className="flex flex-col sm:flex-row flex-wrap lg:flex-nowrap items-stretch sm:items-center gap-2 md:gap-4 w-full xl:w-auto">
 
             {/* CONDOMINIO */}
             <select
               value={condoFilter}
               onChange={(e) => setCondoFilter(e.target.value)}
-              className="w-full lg:w-auto bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
+              className="w-full sm:w-auto bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
             >
               <option value="Todos los Condominios">Todos los Condominios</option>
               {condominios.map((c) => (
@@ -120,7 +120,7 @@ export default function Residents() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full lg:w-auto bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
+              className="w-full sm:w-auto bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
             >
               <option value="Todos los Estados">Todos los Estados</option>
               <option value="Activo">Activo</option>
@@ -131,7 +131,7 @@ export default function Residents() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full lg:w-auto bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
+              className="w-full sm:w-auto bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
             >
               <option value="Todos los Tipos">Todos los Tipos</option>
               <option value="Residente">Residente</option>
@@ -144,16 +144,16 @@ export default function Residents() {
               placeholder="Buscar placa, propietario o unidad..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full lg:w-auto bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
+              className="w-full sm:w-auto bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
             />
 
             {/* BOTÓN */}
             <button
   onClick={() => setIsModalOpen(true)}
-  className="flex items-center gap-2 bg-gray-900 text-white px-3 py-2 text-sm rounded-md hover:bg-gray-800 whitespace-nowrap"
+  className="flex items-center justify-center gap-2 bg-gray-900 text-white px-3 py-2 text-sm rounded-md hover:bg-gray-800 whitespace-nowrap"
 >
   <svg
-    className="w-4 h-4"
+    className="w-4 h-4 shrink-0"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"

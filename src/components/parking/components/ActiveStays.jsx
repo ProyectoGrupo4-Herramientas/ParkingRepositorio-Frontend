@@ -35,8 +35,8 @@ export default function ActiveStays() {
   };
 
   return (
-    <section className="w-[400px] flex flex-col gap-6">
-      <div className="bg-white border border-slate-200 rounded-lg flex flex-col h-[calc(100vh-128px)] shadow-sm">
+    <section className="w-full lg:w-[400px] shrink-0 flex flex-col gap-6">
+      <div className="bg-white border border-slate-200 rounded-lg flex flex-col h-80 lg:h-[calc(100vh-128px)] shadow-sm">
         <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50 rounded-t-lg">
           <h3 className="font-semibold text-slate-800">Estancias Activas</h3>
           <span className="bg-blue-100 text-blue-700 font-medium px-2 py-1 rounded text-xs">

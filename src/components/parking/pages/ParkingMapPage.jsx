@@ -118,7 +118,7 @@ export default function ParkingMapPage() {
         </div>
 
         {/* Leyenda */}
-        <div className="flex items-end gap-3 text-xs text-slate-500 lg:ml-auto pb-1">
+        <div className="flex flex-wrap items-end gap-3 text-xs text-slate-500 lg:ml-auto pb-1">
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-300" /> Libre
           </span>

@@ -58,18 +58,18 @@ const VehicleTable = ({ vehicles, totalCount }) => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50/50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Placa</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Unidad / Apt</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Propietario / Inquilino</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Expiración</th>
+              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Placa</th>
+              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Unidad / Apt</th>
+              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Propietario / Inquilino</th>
+              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
+              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
+              <th scope="col" className="px-3 sm:px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Expiración</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
             {currentVehicles.map((vehicle) => (
               <tr key={vehicle.id} className="hover:bg-gray-50/50 transition-colors group">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="shrink-0 h-8 w-8 rounded bg-gray-100 flex items-center justify-center text-gray-500 mr-3 border border-gray-200">
                       {vehicle.type === 'Residente' ? <Car className="h-4 w-4" /> : <BusFront className="h-4 w-4 text-red-400" />}
@@ -77,19 +77,19 @@ const VehicleTable = ({ vehicles, totalCount }) => {
                     <span className="text-sm font-semibold text-gray-900">{vehicle.plate}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <span className="text-sm text-gray-600">{vehicle.unit}</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <span className="text-sm font-medium text-gray-900">{vehicle.owner}</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <span className="text-sm text-gray-500">{vehicle.type}</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <Badge status={vehicle.status} />
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right">
                   <span className={clsx(
                     "text-sm font-medium", 
                     vehicle.status === 'Expirado' ? "text-red-600" : "text-gray-500"

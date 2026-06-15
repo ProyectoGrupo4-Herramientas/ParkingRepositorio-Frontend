@@ -119,7 +119,7 @@ export default function HistoryPage() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <AccessTable data={currentData} />
 
-          <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+          <div className="px-4 sm:px-6 py-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="text-sm text-slate-500">
               Mostrando {currentData.length} de {filteredData.length} registros
             </span>

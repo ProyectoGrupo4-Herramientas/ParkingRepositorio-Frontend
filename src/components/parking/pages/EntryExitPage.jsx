@@ -5,7 +5,7 @@ import ActiveStays from "../components/ActiveStays";
 export default function EntryExitPage() {
   return (
     <ParkingLayout>
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         <VehicleEntry />
         <ActiveStays />
       </div>

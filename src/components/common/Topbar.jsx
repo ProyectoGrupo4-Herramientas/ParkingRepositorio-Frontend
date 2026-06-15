@@ -65,7 +65,7 @@ export default function Topbar({ onMenuOpen }) {
 
           {/* Panel */}
           {open && (
-            <div className="absolute top-full mt-2 right-0 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-visible z-50">
+            <div className="absolute top-full mt-2 right-0 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-visible z-50">
               {/* Triángulo */}
               <div className="absolute -top-[9px] right-2.5 w-4 h-2.5 overflow-hidden pointer-events-none">
                 <div className="w-3 h-3 bg-white border-l border-t border-slate-200 rotate-45 translate-y-[5px] mx-auto shadow-sm" />

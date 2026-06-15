@@ -75,7 +75,7 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
         <div className="parking-module fixed inset-0 z-50 flex justify-end">
             <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative w-full max-w-md bg-white shadow-2xl h-full flex flex-col">
+            <div className="relative w-full sm:max-w-md bg-white shadow-2xl h-full flex flex-col">
                 <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
                     <h2 className="text-lg font-semibold">Registrar Nuevo Vehículo</h2>
                     <button onClick={onClose}>
@@ -139,7 +139,7 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
                         </div>
 
                         {/* DESCRIPCIÓN (opcional) */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <label className="text-sm font-medium">Marca</label>
                                 <input type="text" value={marca} onChange={(e) => setMarca(e.target.value)}

@@ -10,14 +10,14 @@ const Filters = ({
 }) => {
   return (
     <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 lg:gap-8 items-end">
         
         {/* DATE RANGE */}
-        <div className="lg:col-span-4">
+        <div className="sm:col-span-2 lg:col-span-4">
           <label className="block text-xs font-semibold text-slate-700 mb-2">
             Rango de Fechas
           </label>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input 
               type="date" 
               value={startDate}
@@ -37,7 +37,7 @@ const Filters = ({
         </div>
 
         {/* SEARCH */}
-        <div className="lg:col-span-3">
+        <div className="sm:col-span-1 lg:col-span-3">
           <label className="block text-xs font-semibold text-slate-700 mb-2">
             Placa
           </label>
@@ -51,7 +51,7 @@ const Filters = ({
         </div>
 
         {/* UNIT */}
-        <div className="lg:col-span-2">
+        <div className="sm:col-span-1 lg:col-span-2">
           <label className="block text-xs font-semibold text-slate-700 mb-2">
             Unidad / Residente
           </label>
@@ -72,7 +72,7 @@ const Filters = ({
         </div>
 
         {/* BUTTONS */}
-        <div className="lg:col-span-3 flex gap-2">
+        <div className="sm:col-span-2 lg:col-span-3 flex gap-2">
           <button 
             onClick={() => setTypeFilter(typeFilter === 'Entradas' ? 'Todos' : 'Entradas')}
             className={`px-4 py-2 text-sm rounded-lg border ${
