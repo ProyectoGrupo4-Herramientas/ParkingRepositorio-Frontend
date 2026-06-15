@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import MainLayout from "../layouts/MainLayout";
+import ParkingLayout from "../ParkingLayout";
 import Header from "../components/Header";
 import AccessTable from "../components/AccessTable";
 import Filters from "../components/Filters";
@@ -98,7 +98,7 @@ export default function HistoryPage() {
   );
 
   return (
-    <MainLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
+    <ParkingLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
       <div className="space-y-6">
         <Header dataToExport={filteredData} />
 
@@ -132,6 +132,6 @@ export default function HistoryPage() {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </ParkingLayout>
   );
 }

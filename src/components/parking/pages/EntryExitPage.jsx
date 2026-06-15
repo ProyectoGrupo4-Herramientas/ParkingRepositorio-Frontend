@@ -1,14 +1,14 @@
-import MainLayout from "../layouts/MainLayout";
+import ParkingLayout from "../ParkingLayout";
 import VehicleEntry from "../components/VehicleEntry";
 import ActiveStays from "../components/ActiveStays";
 
 export default function EntryExitPage() {
   return (
-    <MainLayout>
+    <ParkingLayout>
       <div className="flex gap-6">
         <VehicleEntry />
         <ActiveStays />
       </div>
-    </MainLayout>
+    </ParkingLayout>
   );
 }

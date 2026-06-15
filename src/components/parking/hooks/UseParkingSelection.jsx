@@ -27,9 +27,11 @@ export function useParkingSelection() {
 
       return {
         id: space.id,
-        code: space.id,
+        code: space.code || String(space.id),
         nivel: space.nivel,
         zona: space.zona,
+        condominio: space.condominio,
+        condominioId: space.condominioId,
         status: space.enMantenimiento
           ? "maintenance"
           : space.ocupado

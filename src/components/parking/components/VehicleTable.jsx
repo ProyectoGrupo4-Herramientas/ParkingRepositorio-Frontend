@@ -71,7 +71,7 @@ const VehicleTable = ({ vehicles, totalCount }) => {
               <tr key={vehicle.id} className="hover:bg-gray-50/50 transition-colors group">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="flex-shrink-0 h-8 w-8 rounded bg-gray-100 flex items-center justify-center text-gray-500 mr-3 border border-gray-200">
+                    <div className="shrink-0 h-8 w-8 rounded bg-gray-100 flex items-center justify-center text-gray-500 mr-3 border border-gray-200">
                       {vehicle.type === 'Residente' ? <Car className="h-4 w-4" /> : <BusFront className="h-4 w-4 text-red-400" />}
                     </div>
                     <span className="text-sm font-semibold text-gray-900">{vehicle.plate}</span>

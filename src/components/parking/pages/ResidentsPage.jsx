@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import MainLayout from "../layouts/MainLayout";
+import ParkingLayout from "../ParkingLayout";
 import StatsCards from "../components/StatsCards";
 import VehicleTable from "../components/VehicleTable";
 import VehicleModal from "../components/VehicleModal";
@@ -11,6 +11,7 @@ export default function Residents() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos los Estados");
   const [typeFilter, setTypeFilter] = useState("Todos los Tipos");
+  const [condoFilter, setCondoFilter] = useState("Todos los Condominios");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const adaptedVehicles = vehicles.map((v) => ({
@@ -18,22 +19,25 @@ export default function Residents() {
     plate: v.placa,
     unit: v.unidad,
     owner: v.propietario,
+    condominio: v.condominioNombre || "—",
     type: v.tipoOcupante === "residente" ? "Residente" : "Temporal",
     status: v.estado === "activo" ? "Activo" : "Expirado",
     expiration: v.fechaExpiracion,
   }));
 
-  const handleAddVehicle = (newVehicle) => {
+  const condominios = useMemo(
+    () => [...new Set(vehicles.map((v) => v.condominioNombre).filter(Boolean))].sort(),
+    [vehicles],
+  );
+
+  const handleAddVehicle = (nv) => {
     addVehicle({
-      placa: newVehicle.plate,
-      unidad: newVehicle.unit,
-      propietario: newVehicle.owner,
-      vehiculoDesc: "",
-      tipoOcupante:
-        newVehicle.type === "Residente" ? "residente" : "visitante",
+      placa: nv.placa,
+      usuarioId: nv.usuarioId,
+      marca: nv.marca,
+      modelo: nv.modelo,
+      color: nv.color,
       estado: "activo",
-      fechaExpiracion: newVehicle.expiration || null,
-      espacioAsignado: null,
     });
   };
 
@@ -48,6 +52,10 @@ export default function Residents() {
       filtered = filtered.filter((v) => v.type === typeFilter);
     }
 
+    if (condoFilter !== "Todos los Condominios") {
+      filtered = filtered.filter((v) => v.condominio === condoFilter);
+    }
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -59,7 +67,7 @@ export default function Residents() {
     }
 
     return filtered;
-  }, [adaptedVehicles, searchQuery, statusFilter, typeFilter]);
+  }, [adaptedVehicles, searchQuery, statusFilter, typeFilter, condoFilter]);
 
   const stats = useMemo(
     () => ({
@@ -78,7 +86,7 @@ export default function Residents() {
   );
 
   return (
-    <MainLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
+    <ParkingLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
       <div className="max-w-7xl mx-auto space-y-6 p-8">
 
         {/* HEADER */}
@@ -93,6 +101,20 @@ export default function Residents() {
           </div>
 
           <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 md:gap-4 w-full xl:w-auto">
+
+            {/* CONDOMINIO */}
+            <select
+              value={condoFilter}
+              onChange={(e) => setCondoFilter(e.target.value)}
+              className="w-full lg:w-auto bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
+            >
+              <option value="Todos los Condominios">Todos los Condominios</option>
+              {condominios.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
 
             {/* STATUS */}
             <select
@@ -162,6 +184,6 @@ export default function Residents() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleAddVehicle}
       />
-    </MainLayout>
+    </ParkingLayout>
   );
 }

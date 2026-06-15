@@ -1,26 +1,27 @@
 import { useState } from "react";
 import Sidebar from "../components/common/Sidebar";
 import Topbar from "../components/common/Topbar";
-import VehicleModal from "../components/VehicleModal";
-import { useParking } from "../context/ParkingContext";
+import VehicleModal from "../components/parking/components/VehicleModal";
+import { useParking } from "../components/parking/context/ParkingContext";
 
-export default function MainLayout({ children, searchQuery, setSearchQuery }) {
+export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { addVehicle } = useParking();
 
-  const handleSaveGlobalVehicle = (newVehicle) => {
+  // El VehicleModal rediseñado entrega { placa, usuarioId, marca, modelo, color, ... }.
+  const handleSaveGlobalVehicle = (nv) => {
     addVehicle({
-      placa: newVehicle.plate,
-      unidad: newVehicle.unit,
-      propietario: newVehicle.owner,
-      vehiculoDesc: "",
-      tipoOcupante: newVehicle.type === "Residente" ? "residente" : "visitante",
+      placa: nv.placa,
+      usuarioId: nv.usuarioId,
+      marca: nv.marca,
+      modelo: nv.modelo,
+      color: nv.color,
       estado: "activo",
-      fechaExpiracion: newVehicle.expiration || null,
-      espacioAsignado: null,
     });
+    setIsModalOpen(false);
   };
 
   return (
