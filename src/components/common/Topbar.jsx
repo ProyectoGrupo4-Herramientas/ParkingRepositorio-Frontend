@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useParking } from "../../context/ParkingContext";
+import { useParking } from "../parking/context/ParkingContext";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
