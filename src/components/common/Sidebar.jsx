@@ -63,8 +63,8 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-brand/10 text-brand font-semibold"
-                    : "text-slate-500 hover:bg-brand/10 hover:text-brand"
+                    ? "bg-brand text-white font-semibold"
+                    : "text-slate-500 hover:bg-brand hover:text-white"
                 }`
               }
             >
