@@ -31,7 +31,7 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
 
       <aside
         className={`
-          fixed left-0 top-0 h-screen w-[260px] bg-white border-r border-slate-200
+          fixed left-0 top-0 h-screen w-65 bg-white border-r border-slate-200
           flex flex-col py-6 z-50 transition-transform duration-300
           ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
         `}

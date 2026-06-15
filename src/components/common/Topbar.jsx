@@ -35,7 +35,7 @@ export default function Topbar({ onMenuOpen }) {
     <header className="fixed top-0 right-0 left-0 md:left-[260px] h-16 z-40 border-b border-slate-200 bg-white flex items-center px-4 md:px-6 gap-3">
       <button
         onClick={onMenuOpen}
-        className="md:hidden text-slate-500 hover:text-slate-900 flex-shrink-0"
+        className="md:hidden text-slate-500 hover:text-slate-900 shrink-0"
       >
         <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
           menu
@@ -57,7 +57,7 @@ export default function Topbar({ onMenuOpen }) {
               notifications
             </span>
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 rounded-full ring-2 ring-white flex items-center justify-center text-[9px] font-bold text-white px-0.5">
+              <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 bg-red-500 rounded-full ring-2 ring-white flex items-center justify-center text-[9px] font-bold text-white px-0.5">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -67,7 +67,7 @@ export default function Topbar({ onMenuOpen }) {
           {open && (
             <div className="absolute top-full mt-2 right-0 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-visible z-50">
               {/* Triángulo */}
-              <div className="absolute -top-[9px] right-2.5 w-4 h-[10px] overflow-hidden pointer-events-none">
+              <div className="absolute -top-[9px] right-2.5 w-4 h-2.5 overflow-hidden pointer-events-none">
                 <div className="w-3 h-3 bg-white border-l border-t border-slate-200 rotate-45 translate-y-[5px] mx-auto shadow-sm" />
               </div>
 
@@ -125,7 +125,7 @@ export default function Topbar({ onMenuOpen }) {
                         className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-slate-50 transition-colors ${!n.read ? "bg-slate-50/80" : ""}`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${style.bg}`}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${style.bg}`}
                         >
                           <span
                             className={`material-symbols-outlined ${style.text}`}
@@ -153,7 +153,7 @@ export default function Topbar({ onMenuOpen }) {
                           </p>
                         </div>
                         {!n.read && (
-                          <span className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 mt-1" />
+                          <span className="w-2 h-2 bg-red-500 rounded-full shrink-0 mt-1" />
                         )}
                       </button>
                     );
