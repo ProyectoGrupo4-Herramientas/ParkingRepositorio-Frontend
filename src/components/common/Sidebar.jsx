@@ -31,7 +31,7 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
 
       <aside
         className={`
-          fixed left-0 top-0 h-screen w-[260px] bg-white border-r border-slate-200
+          fixed left-0 top-0 h-screen w-65 bg-white border-r border-slate-200
           flex flex-col py-6 z-50 transition-transform duration-300
           ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
         `}
@@ -46,7 +46,7 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
         <div className="px-4 mb-6">
           <button
             onClick={onOpenModal}
-            className="w-full bg-slate-900 text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-slate-700"
+            className="w-full bg-brand text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-brand-dark"
           >
             <PlusCircle size={18} />
             Registrar Nuevo Vehículo
@@ -63,8 +63,8 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-slate-100 text-slate-900 font-semibold"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-brand text-white font-semibold"
+                    : "text-slate-500 hover:bg-brand hover:text-white"
                 }`
               }
             >
