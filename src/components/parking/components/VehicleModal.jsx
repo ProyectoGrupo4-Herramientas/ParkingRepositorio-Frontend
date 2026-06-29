@@ -41,7 +41,7 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
         setLoadingInq(true);
         parkingService
             .getInquilinos(condominioId)
-            .then((us) => setInquilinos(us.filter((u) => u.apartamentoId)))
+            .then((us) => setInquilinos(us))
             .catch(() => setInquilinos([]))
             .finally(() => setLoadingInq(false));
         setUsuarioId("");

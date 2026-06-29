@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import ParkingLayout from "../ParkingLayout";
 import StatsCards from "../components/StatsCards";
 import VehicleTable from "../components/VehicleTable";
 import VehicleModal from "../components/VehicleModal";
 import { useParking } from "../context/ParkingContext";
+import { parkingService } from "../../../services/parkingService";
 
 export default function Residents() {
   const { vehicles, addVehicle } = useParking();
@@ -13,6 +14,11 @@ export default function Residents() {
   const [typeFilter, setTypeFilter] = useState("Todos los Tipos");
   const [condoFilter, setCondoFilter] = useState("Todos los Condominios");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [condominios, setCondominios] = useState([]);
+
+  useEffect(() => {
+    parkingService.getCondominios().then(setCondominios).catch(() => setCondominios([]));
+  }, []);
 
   const adaptedVehicles = vehicles.map((v) => ({
     id: v.id,
@@ -24,11 +30,6 @@ export default function Residents() {
     status: v.estado === "activo" ? "Activo" : "Expirado",
     expiration: v.fechaExpiracion,
   }));
-
-  const condominios = useMemo(
-    () => [...new Set(vehicles.map((v) => v.condominioNombre).filter(Boolean))].sort(),
-    [vehicles],
-  );
 
   const handleAddVehicle = (nv) => {
     addVehicle({
