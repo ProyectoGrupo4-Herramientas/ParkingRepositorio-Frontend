@@ -40,7 +40,7 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
         }
         setLoadingInq(true);
         parkingService
-            .getInquilinos(condominioId)
+            .getInquilinos()
             .then((us) => setInquilinos(us))
             .catch(() => setInquilinos([]))
             .finally(() => setLoadingInq(false));

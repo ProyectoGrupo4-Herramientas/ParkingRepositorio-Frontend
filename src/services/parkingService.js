@@ -75,9 +75,8 @@ export const parkingService = {
 
     getCondominios: async () =>
         arr(await req("/api/condominios")).map((c) => ({ id: c.idCondominio, nombre: c.nombre })),
-    getInquilinos: async (condominioId) =>
+    getInquilinos: async () =>
         arr(await req("/api/usuarios"))
-            .filter((u) => condominioId == null || String(u.idCondominio) === String(condominioId))
             .map((u) => ({
                 id: u.idUsuario,
                 nombres: u.nombreCompleto,
