@@ -111,8 +111,8 @@ export default function Residents() {
             >
               <option value="Todos los Condominios">Todos los Condominios</option>
               {condominios.map((c) => (
-                <option key={c} value={c}>
-                  {c}
+                <option key={c.id} value={c.nombre}>
+                  {c.nombre}
                 </option>
               ))}
             </select>
