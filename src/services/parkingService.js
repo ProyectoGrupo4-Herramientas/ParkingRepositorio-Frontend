@@ -3,7 +3,7 @@
 // compartida) y normaliza la respuesta a la forma que espera ParkingContext.
 // Flujo: este front -> gateway -> API Central -> BD.
 
-const BASE = import.meta.env.VITE_GATEWAY_URL || "https://parkingrepositorio-backend-1wnc.onrender.com";
+const BASE = import.meta.env.VITE_GATEWAY_URL || "https://parkingrepositorio-backend.onrender.com";
 
 async function req(path, opts = {}) {
     const res = await fetch(BASE + path, {
