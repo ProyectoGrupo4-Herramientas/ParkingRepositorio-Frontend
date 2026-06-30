@@ -94,6 +94,9 @@ export const parkingService = {
                 matricula: data.placa,
                 idUsuarioPropietario: data.usuarioId,
                 marcaModelo: [data.marca, data.modelo].filter(Boolean).join(" ") || "",
+                estado: "ACTIVO",
+                tipoRegistro: "Propietario",
+                idApartamento: 1,
             }),
         }),
     updateVehiculo: (id, data) =>
