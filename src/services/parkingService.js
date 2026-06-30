@@ -90,7 +90,11 @@ export const parkingService = {
     createVehiculo: (data) =>
         req("/api/vehiculos", {
             method: "POST",
-            body: JSON.stringify({ matricula: data.placa, idUsuarioPropietario: data.usuarioId }),
+            body: JSON.stringify({
+                matricula: data.placa,
+                idUsuarioPropietario: data.usuarioId,
+                marcaModelo: [data.marca, data.modelo].filter(Boolean).join(" ") || "",
+            }),
         }),
     updateVehiculo: (id, data) =>
         req(`/api/vehiculos/${id}`, {
