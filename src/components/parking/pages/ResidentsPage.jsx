@@ -62,8 +62,8 @@ export default function Residents() {
       filtered = filtered.filter(
         (v) =>
           v.plate.toLowerCase().includes(q) ||
-          v.owner.toLowerCase().includes(q) ||
-          v.unit.toLowerCase().includes(q)
+          (v.owner && v.owner.toLowerCase().includes(q)) ||
+          (v.unit && v.unit.toLowerCase().includes(q))
       );
     }
 
