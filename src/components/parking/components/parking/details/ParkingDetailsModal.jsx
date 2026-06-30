@@ -44,17 +44,6 @@ export default function ParkingDetailsModal({ spot, onClose, onReassign, onToggl
 
   return (
     <>
-      {showReassign && (
-        <ReassignModal onConfirm={handleReassign} onCancel={() => setShowReassign(false)} />
-      )}
-      {showMaintenance && (
-        <MaintenanceModal
-          isEntering={!isMaintenance}
-          onConfirm={handleMaintenance}
-          onCancel={() => setShowMaintenance(false)}
-        />
-      )}
-
       <div
         className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-200 ${
           visible ? "bg-black/40" : "bg-transparent pointer-events-none"
@@ -183,6 +172,17 @@ export default function ParkingDetailsModal({ spot, onClose, onReassign, onToggl
           </div>
         </div>
       </div>
+
+      {showReassign && (
+        <ReassignModal onConfirm={handleReassign} onCancel={() => setShowReassign(false)} />
+      )}
+      {showMaintenance && (
+        <MaintenanceModal
+          isEntering={!isMaintenance}
+          onConfirm={handleMaintenance}
+          onCancel={() => setShowMaintenance(false)}
+        />
+      )}
     </>
   );
 }
