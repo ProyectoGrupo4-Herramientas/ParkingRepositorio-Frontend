@@ -3,28 +3,24 @@ export default function ParkingSpot({ spot, onClick, isSelected }) {
     occupied: "border-slate-200 bg-white hover:shadow-md",
     available: "border-slate-200 bg-green-50/70 hover:shadow-md",
     reserved: "border-slate-200 bg-white hover:shadow-md",
-    maintenance: "border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed",
+    maintenance: "border-slate-200 bg-white hover:shadow-md",
   };
 
   const iconColor = {
     occupied: "text-red-400",
     available: "text-green-400",
     reserved: "text-blue-400",
-    maintenance: "text-slate-400",
+    maintenance: "text-amber-400",
   };
-
-  const isDisabled = spot.status === "maintenance";
 
   return (
     <button
-      onClick={isDisabled ? undefined : onClick}
-      disabled={isDisabled}
+      onClick={onClick}
       className={`
         border rounded-xl p-2.5 h-24 sm:h-28 flex flex-col justify-between
-        text-left transition-all w-full
+        text-left transition-all w-full cursor-pointer
         ${statusStyles[spot.status]}
         ${isSelected ? "ring-2 ring-slate-900 shadow-md" : ""}
-        ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}
       `}
     >
       {/* HEADER */}
@@ -66,7 +62,7 @@ export default function ParkingSpot({ spot, onClick, isSelected }) {
         )}
 
         {spot.status === "maintenance" && (
-          <div className="bg-slate-100 border border-slate-300 text-slate-600 text-[10px] sm:text-xs text-center py-1 rounded-lg font-bold tracking-wide uppercase">
+          <div className="bg-amber-50 border border-amber-200 text-amber-600 text-[10px] sm:text-xs text-center py-1 rounded-lg font-bold tracking-wide uppercase">
             MANTENIMIENTO
           </div>
         )}
