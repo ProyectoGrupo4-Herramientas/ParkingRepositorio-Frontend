@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Fondo redondeado -->
+  <rect width="512" height="512" rx="96" fill="#1E3A8A"/>
+
+  <!-- Plaza de estacionamiento estilizada (líneas horizontales sugerentes) -->
+  <rect x="100" y="360" width="312" height="6" rx="3" fill="#22C55E" opacity="0.3"/>
+  <rect x="100" y="380" width="312" height="6" rx="3" fill="#22C55E" opacity="0.3"/>
+  <rect x="100" y="400" width="312" height="6" rx="3" fill="#22C55E" opacity="0.3"/>
+
+  <!-- Línea vertical de la plaza (lado izquierdo) -->
+  <rect x="100" y="140" width="6" height="226" rx="3" fill="#22C55E" opacity="0.3"/>
+
+  <!-- Letra "P" principal - trazo grueso y moderno -->
+  <path
+    d="
+      M 180 140
+      L 180 370
+      L 228 370
+      L 228 300
+      L 290 300
+      C 350 300, 370 260, 370 220
+      C 370 180, 350 140, 290 140
+      Z
+    "
+    fill="white"
+  />
+
+  <!-- Recorte interior de la P -->
+  <path
+    d="
+      M 228 188
+      L 280 188
+      C 310 188, 322 204, 322 220
+      C 322 236, 310 252, 280 252
+      L 228 252
+      Z
+    "
+    fill="#1E3A8A"
+  />
+
+  <!-- Acento verde: punto / indicador de disponibilidad -->
+  <circle cx="410" cy="130" r="28" fill="#22C55E"/>
+  <circle cx="410" cy="130" r="12" fill="white" opacity="0.8"/>
+</svg>
