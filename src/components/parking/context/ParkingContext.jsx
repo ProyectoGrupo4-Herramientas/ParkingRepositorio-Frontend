@@ -44,16 +44,16 @@ const mapVehiculo = (v) => ({
 });
 
 const mapEstacionamiento = (e) => ({
-    id: e.id,
-    code: e.codigo,
+    id: e.idEstacionamiento || e.id,
+    code: e.codigoPlaza || e.codigo,
     zona: e.zonaNombre,
-    zonaId: e.zonaEstacionamientoId,
+    zonaId: e.zonaEstacionamientoId || e.idApartamento || null,
     condominio: e.condominioNombre || "Sin condominio",
-    condominioId: e.condominioId || null,
+    condominioId: e.idCondominio || e.condominioId || null,
     tipo: "residente",
-    ocupado: e.estadoOcupacion === "OCUPADO",
-    enMantenimiento: e.estadoOcupacion === "INACTIVO",
-    vehiculoId: e.vehiculoActualId || null,
+    ocupado: (e.estadoOcupacion || "").startsWith("OCUPADO"),
+    enMantenimiento: (e.estadoOcupacion || "") === "INACTIVO",
+    vehiculoId: e.idVehiculoActual || e.vehiculoActualId || null,
     placaActual: e.placaActual || null,
 });
 

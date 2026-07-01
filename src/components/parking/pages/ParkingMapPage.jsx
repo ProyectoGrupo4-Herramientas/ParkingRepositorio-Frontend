@@ -60,7 +60,7 @@ export default function ParkingMapPage() {
             Mapa de Estacionamiento
           </h1>
           <p className="text-sm text-slate-400 mt-0.5">
-            Plano de espacios por condominio y torre, en tiempo real.
+            Plano de espacios por condominio y torre.
           </p>
         </div>
         <OccupancyCard data={occupancy} />
