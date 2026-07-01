@@ -45,7 +45,7 @@ const normEstacionamiento = (e) => ({
     codigo: e.codigoPlaza,
     estadoOcupacion: e.estadoOcupacion,
     zonaNombre: e.zonaNombre,
-    zonaEstacionamientoId: e.idZona ?? null,
+    zonaEstacionamientoId: e.zonaEstacionamientoId ?? null,
     condominioId: e.idCondominio,
     condominioNombre: e.condominioNombre,
     vehiculoActualId: e.idVehiculoActual,
