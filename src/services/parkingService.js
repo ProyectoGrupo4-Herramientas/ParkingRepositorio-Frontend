@@ -75,17 +75,16 @@ export const parkingService = {
 
     getCondominios: async () =>
         arr(await req("/api/condominios")).map((c) => ({ id: c.idCondominio, nombre: c.nombre })),
-    getInquilinos: async (condominioId) => {
-        const params = condominioId ? `?condominioId=${condominioId}` : "";
-        return arr(await req("/api/inquilinos" + params))
+    getInquilinos: async (condominioId) =>
+        arr(await req("/api/usuarios"))
+            .filter((u) => condominioId == null || String(u.idCondominio) === String(condominioId))
             .map((u) => ({
                 id: u.idUsuario,
                 nombres: u.nombreCompleto,
                 apellidos: "",
                 unidad: u.unidad || null,
                 apartamentoId: u.idApartamento || null,
-            }));
-    },
+            })),
 
     createVehiculo: (data) =>
         req("/api/vehiculos", {
