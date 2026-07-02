@@ -162,7 +162,7 @@ http://localhost:5173
 
 La aplicación se encuentra desplegada en Vercel.
 
-Acceso: [https://parkcontrol-cyan.vercel.app/](https://parkcontrol-cyan.vercel.app/)
+Acceso: https://parkingrepositoriofrontend-git-dev-danielwavs-projects.vercel.app/
 
 ---
 
