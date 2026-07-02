@@ -17,7 +17,7 @@ export default function ParkingSpot({ spot, onClick, isSelected }) {
       labelClass: "text-red-700 bg-red-100",
     },
     maintenance: {
-      wrap: "border-amber-200 bg-slate-50 opacity-80 cursor-not-allowed",
+      wrap: "border-amber-200 bg-white hover:border-amber-400 hover:shadow-md",
       bay: "bg-amber-50",
       icon: "build",
       iconColor: "text-amber-500",
@@ -35,18 +35,14 @@ export default function ParkingSpot({ spot, onClick, isSelected }) {
   };
 
   const c = config[spot.status] || config.available;
-  const isDisabled = spot.status === "maintenance";
-
   return (
     <button
-      onClick={isDisabled ? undefined : onClick}
-      disabled={isDisabled}
+      onClick={onClick}
       title={`${spot.code}${spot.plate ? ` · ${spot.plate}` : ""}`}
       className={`
-        group relative border-2 rounded-xl overflow-hidden text-left transition-all w-full
+        group relative border-2 rounded-xl overflow-hidden text-left transition-all w-full cursor-pointer
         ${c.wrap}
         ${isSelected ? "ring-2 ring-slate-900 ring-offset-1" : ""}
-        ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"}
       `}
     >
       {/* Código de la plaza */}
