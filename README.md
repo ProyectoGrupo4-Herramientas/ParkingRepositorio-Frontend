@@ -153,6 +153,11 @@ npm install
 npm run dev
 ```
 
+> El frontend consume por defecto el **gateway desplegado en Render**, que a su vez usa
+> la **API de CondoSaaS** y la **base de datos compartida**. Por eso funciona **solo**,
+> sin necesidad de levantar CondoSaaS ni una base de datos. Si corres el gateway en tu
+> máquina, copia `.env.example` a `.env` y ajusta `VITE_GATEWAY_URL`.
+
 ### 4. Acceder desde el navegador:
 ```
 http://localhost:5173
