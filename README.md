@@ -167,7 +167,7 @@ http://localhost:5173
 
 La aplicación se encuentra desplegada en Vercel.
 
-Acceso: https://parkingrepositoriofrontend.vercel.app/
+Acceso: https://parkcontrolrepo.vercel.app/
 
 ---
 
