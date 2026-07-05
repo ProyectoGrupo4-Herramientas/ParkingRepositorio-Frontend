@@ -248,7 +248,12 @@ export function ParkingProvider({ children }) {
     const registerExit = useCallback(
         async (placa) => {
             try {
-                await parkingService.registrarSalida({ placa: (placa || "").toUpperCase() });
+                const plate = (placa || "").toUpperCase();
+                const vehicle = vehicles.find((v) => v.placa === plate);
+                await parkingService.registrarSalida({
+                    placa: plate,
+                    tipoOcupante: vehicle?.tipoOcupanteRaw || "VISITANTE",
+                });
                 // Marcar como LIBRE la plaza que tenía este vehículo
                 const target = parkingSpaces.find(
                     (s) => s.placaActual === (placa || "").toUpperCase(),
@@ -266,7 +271,7 @@ export function ParkingProvider({ children }) {
                 addNotification("warning", `Sin entrada activa — ${placa?.toUpperCase()}`, err?.message || "");
             }
         },
-        [parkingSpaces, addNotification, loadAll],
+        [vehicles, parkingSpaces, addNotification, loadAll],
     );
 
     // El registro manual (placa ilegible / sin vehículo) requiere un vehículo existente en la API.
