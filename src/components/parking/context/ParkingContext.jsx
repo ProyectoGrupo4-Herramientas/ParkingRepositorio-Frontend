@@ -138,8 +138,22 @@ export function ParkingProvider({ children }) {
             const veh = vehRaw.map(mapVehiculo);
             const vehById = Object.fromEntries(veh.map((v) => [v.id, v]));
 
+            const estMapped = estRaw.map(mapEstacionamiento);
+
+            // Aplicar mapeo local plate→space y enriquecer con datos del vehículo
+            for (const [plate, spaceId] of plateToSpace.current) {
+                const spot = estMapped.find((s) => s.id === spaceId);
+                if (spot && spot.ocupado) {
+                    const vehiculo = veh.find((v) => v.placa === plate);
+                    if (vehiculo) {
+                        spot.vehiculoId = vehiculo.id;
+                        spot.placaActual = plate;
+                    }
+                }
+            }
+
             setVehicles(veh);
-            setParkingSpaces(estRaw.map(mapEstacionamiento));
+            setParkingSpaces(estMapped);
             setAccessLog(
                 permRaw
                     .map((p) => mapPermanencia(p, vehById))
@@ -245,22 +259,6 @@ export function ParkingProvider({ children }) {
                 }
                 addNotification("success", `Entrada aprobada — ${placa?.toUpperCase()}`);
                 await loadAll();
-                // Asociar el vehículo a la plaza para que el modal muestre los datos del residente
-                const sid = plateToSpace.current.get(plate);
-                if (sid) {
-                    setParkingSpaces((prev) =>
-                        prev.map((s) =>
-                            s.id === sid
-                                ? {
-                                      ...s,
-                                      vehiculoId: vehicle?.id || null,
-                                      ocupado: true,
-                                      placaActual: plate,
-                                  }
-                                : s,
-                        ),
-                    );
-                }
             } catch (err) {
                 addNotification("alert", `No se pudo registrar la entrada — ${placa}`, err?.message || "");
             }
@@ -298,16 +296,8 @@ export function ParkingProvider({ children }) {
                     plateToSpace.current.set(plate, target.id);
                 }
                 addNotification("info", `Salida registrada — ${placa?.toUpperCase()}`);
-                await loadAll();
-                // Forzar estado local a LIBRE (por si CondoSaaS no actualizó el campo)
-                setParkingSpaces((prev) =>
-                    prev.map((s) =>
-                        s.id === (plateToSpace.current.get(plate) ?? -1) || s.placaActual === plate
-                            ? { ...s, vehiculoId: null, ocupado: false, enMantenimiento: false, placaActual: null }
-                            : s,
-                    ),
-                );
                 plateToSpace.current.delete(plate);
+                await loadAll();
             } catch (err) {
                 addNotification("warning", `Sin entrada activa — ${placa?.toUpperCase()}`, err?.message || "");
             }
