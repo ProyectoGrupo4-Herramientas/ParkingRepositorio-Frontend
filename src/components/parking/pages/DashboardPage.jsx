@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useParking } from "../context/ParkingContext";
+import { Link } from "react-router-dom";
 import {
   Car,
   ParkingSquare,
@@ -249,9 +250,9 @@ export default function DashboardPage() {
       {/* ──────── SECCIÓN 4: Acceso Directo ──────── */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-semibold text-slate-900">Acceso Directo</h2>
-        <a href="/history" className="text-xs font-medium text-brand hover:text-brand-dark transition-colors flex items-center gap-1">
+        <Link to="/history" className="text-xs font-medium text-brand hover:text-brand-dark transition-colors flex items-center gap-1">
           Ver todos <ArrowRight size={14} />
-        </a>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -275,9 +276,9 @@ export default function DashboardPage() {
               </span>
             </button>
           ) : (
-            <a
+            <Link
               key={item.label}
-              href={item.to}
+              to={item.to}
               className="group bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] p-5 block hover:shadow-md hover:border-slate-200 transition-all"
             >
               <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-4 group-hover:bg-brand/10 transition-colors">
@@ -288,7 +289,7 @@ export default function DashboardPage() {
               <span className="text-xs font-medium text-slate-400 group-hover:text-brand transition-colors">
                 Ir al módulo →
               </span>
-            </a>
+            </Link>
           ),
         )}
       </div>
