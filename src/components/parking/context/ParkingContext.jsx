@@ -290,22 +290,20 @@ export function ParkingProvider({ children }) {
                     );
                 }
                 if (target) {
-                    try {
-                        await parkingService.updateEstacionamiento(target.id, {
-                            codigo: target.code,
-                            estadoOcupacion: "LIBRE",
-                            zonaEstacionamientoId: target.zonaId,
-                        });
-                    } catch (_) { /* si falla la API, continuamos */ }
+                    await parkingService.updateEstacionamiento(target.id, {
+                        codigo: target.code,
+                        estadoOcupacion: "LIBRE",
+                        zonaEstacionamientoId: target.zonaId,
+                    });
                     plateToSpace.current.set(plate, target.id);
                 }
                 addNotification("info", `Salida registrada — ${placa?.toUpperCase()}`);
                 await loadAll();
-                // Limpiar la asociación vehículo-plaza en el estado local
+                // Forzar estado local a LIBRE (por si CondoSaaS no actualizó el campo)
                 setParkingSpaces((prev) =>
                     prev.map((s) =>
-                        s.id === (plateToSpace.current.get(plate) ?? -1)
-                            ? { ...s, vehiculoId: null, ocupado: false, placaActual: null }
+                        s.id === (plateToSpace.current.get(plate) ?? -1) || s.placaActual === plate
+                            ? { ...s, vehiculoId: null, ocupado: false, enMantenimiento: false, placaActual: null }
                             : s,
                     ),
                 );
