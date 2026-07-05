@@ -226,28 +226,37 @@ export function ParkingProvider({ children }) {
                     observacion: observacion || null,
                     tipoOcupante: ocupante,
                 });
-                // Marcar la primera plaza disponible del condominio del vehículo como OCUPADO
-                if (vehicle) {
-                    const libre = parkingSpaces.find(
-                        (s) => s.condominio === vehicle.condominioNombre && !s.ocupado && !s.enMantenimiento,
-                    );
-                    if (libre) {
-                        await parkingService.updateEstacionamiento(libre.id, {
-                            codigo: libre.code,
-                            estadoOcupacion: "OCUPADO",
-                            zonaEstacionamientoId: libre.zonaId,
-                        });
-                        plateToSpace.current.set(plate, libre.id);
-                    }
+                // Marcar la primera plaza disponible como OCUPADO
+                const libre = vehicle
+                    ? parkingSpaces.find(
+                          (s) =>
+                              s.condominio === vehicle.condominioNombre &&
+                              !s.ocupado &&
+                              !s.enMantenimiento,
+                      )
+                    : parkingSpaces.find((s) => !s.ocupado && !s.enMantenimiento);
+                if (libre) {
+                    await parkingService.updateEstacionamiento(libre.id, {
+                        codigo: libre.code,
+                        estadoOcupacion: "OCUPADO",
+                        zonaEstacionamientoId: libre.zonaId,
+                    });
+                    plateToSpace.current.set(plate, libre.id);
                 }
                 addNotification("success", `Entrada aprobada — ${placa?.toUpperCase()}`);
                 await loadAll();
                 // Asociar el vehículo a la plaza para que el modal muestre los datos del residente
-                if (vehicle) {
+                const sid = plateToSpace.current.get(plate);
+                if (sid) {
                     setParkingSpaces((prev) =>
                         prev.map((s) =>
-                            s.id === (plateToSpace.current.get(plate) ?? -1)
-                                ? { ...s, vehiculoId: vehicle.id, ocupado: true }
+                            s.id === sid
+                                ? {
+                                      ...s,
+                                      vehiculoId: vehicle?.id || null,
+                                      ocupado: true,
+                                      placaActual: plate,
+                                  }
                                 : s,
                         ),
                     );
