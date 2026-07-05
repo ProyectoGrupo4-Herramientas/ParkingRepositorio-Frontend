@@ -254,15 +254,22 @@ export function ParkingProvider({ children }) {
         [parkingSpaces],
     );
 
-    // Asignar un vehículo a una plaza = registrar su entrada en esa plaza.
+    // Asignar un vehículo a una plaza = registrar su entrada + marcar la plaza como OCUPADO.
     const reassignSpace = useCallback(
         async (spaceId, placa) => {
             if (!placa) return;
+            const space = parkingSpaces.find((s) => s.id === spaceId);
+            if (!space) return;
             try {
                 await parkingService.registrarEntrada({
                     placa: placa.toUpperCase(),
                     metodo: "MANUAL",
                     estacionamientoId: spaceId,
+                });
+                await parkingService.updateEstacionamiento(spaceId, {
+                    codigo: space.code,
+                    estadoOcupacion: "OCUPADO",
+                    zonaEstacionamientoId: space.zonaId,
                 });
                 addNotification("success", `Plaza asignada a ${placa.toUpperCase()}`);
                 await loadAll();
@@ -270,7 +277,7 @@ export function ParkingProvider({ children }) {
                 addNotification("alert", "No se pudo asignar la plaza", err?.message || "");
             }
         },
-        [addNotification, loadAll],
+        [parkingSpaces, addNotification, loadAll],
     );
 
     const toggleSpaceMaintenance = useCallback(
