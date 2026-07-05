@@ -218,26 +218,51 @@ export function ParkingProvider({ children }) {
                     metodo: "MANUAL",
                     observacion: observacion || null,
                 });
+                // Marcar la primera plaza disponible del condominio del vehículo como OCUPADO
+                const vehicle = vehicles.find((v) => v.placa === (placa || "").toUpperCase());
+                if (vehicle) {
+                    const libre = parkingSpaces.find(
+                        (s) => s.condominio === vehicle.condominioNombre && !s.ocupado && !s.enMantenimiento,
+                    );
+                    if (libre) {
+                        await parkingService.updateEstacionamiento(libre.id, {
+                            codigo: libre.code,
+                            estadoOcupacion: "OCUPADO",
+                            zonaEstacionamientoId: libre.zonaId,
+                        });
+                    }
+                }
                 addNotification("success", `Entrada aprobada — ${placa?.toUpperCase()}`);
                 await loadAll();
             } catch (err) {
                 addNotification("alert", `No se pudo registrar la entrada — ${placa}`, err?.message || "");
             }
         },
-        [addNotification, loadAll],
+        [vehicles, parkingSpaces, addNotification, loadAll],
     );
 
     const registerExit = useCallback(
         async (placa) => {
             try {
                 await parkingService.registrarSalida({ placa: (placa || "").toUpperCase() });
+                // Marcar como LIBRE la plaza que tenía este vehículo
+                const target = parkingSpaces.find(
+                    (s) => s.placaActual === (placa || "").toUpperCase(),
+                );
+                if (target) {
+                    await parkingService.updateEstacionamiento(target.id, {
+                        codigo: target.code,
+                        estadoOcupacion: "LIBRE",
+                        zonaEstacionamientoId: target.zonaId,
+                    });
+                }
                 addNotification("info", `Salida registrada — ${placa?.toUpperCase()}`);
                 await loadAll();
             } catch (err) {
                 addNotification("warning", `Sin entrada activa — ${placa?.toUpperCase()}`, err?.message || "");
             }
         },
-        [addNotification, loadAll],
+        [parkingSpaces, addNotification, loadAll],
     );
 
     // El registro manual (placa ilegible / sin vehículo) requiere un vehículo existente en la API.
@@ -254,15 +279,22 @@ export function ParkingProvider({ children }) {
         [parkingSpaces],
     );
 
-    // Asignar un vehículo a una plaza = registrar su entrada en esa plaza.
+    // Asignar un vehículo a una plaza = registrar su entrada + marcar la plaza como OCUPADO.
     const reassignSpace = useCallback(
         async (spaceId, placa) => {
             if (!placa) return;
+            const space = parkingSpaces.find((s) => s.id === spaceId);
+            if (!space) return;
             try {
                 await parkingService.registrarEntrada({
                     placa: placa.toUpperCase(),
                     metodo: "MANUAL",
                     estacionamientoId: spaceId,
+                });
+                await parkingService.updateEstacionamiento(spaceId, {
+                    codigo: space.code,
+                    estadoOcupacion: "OCUPADO",
+                    zonaEstacionamientoId: space.zonaId,
                 });
                 addNotification("success", `Plaza asignada a ${placa.toUpperCase()}`);
                 await loadAll();
@@ -270,7 +302,7 @@ export function ParkingProvider({ children }) {
                 addNotification("alert", "No se pudo asignar la plaza", err?.message || "");
             }
         },
-        [addNotification, loadAll],
+        [parkingSpaces, addNotification, loadAll],
     );
 
     const toggleSpaceMaintenance = useCallback(
