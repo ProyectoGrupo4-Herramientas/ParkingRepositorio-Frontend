@@ -55,7 +55,6 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
             alert("Selecciona condominio, inquilino y escribe la placa.");
             return;
         }
-        const rawTipo = inquilinoSel?.tipoOcupante || "PROPIETARIO";
         onSave({
             placa: plate.trim().toUpperCase(),
             usuarioId: Number(usuarioId),
@@ -66,7 +65,7 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
                 ? `${inquilinoSel.nombres} ${inquilinoSel.apellidos}`
                 : "",
             unit: inquilinoSel?.unidad || "",
-            tipoRegistro: rawTipo === "VISITANTE" ? "Inquilino" : "Propietario",
+            tipoRegistro: "Propietario",
             apartamentoId: inquilinoSel?.apartamentoId || null,
         });
         onClose();
