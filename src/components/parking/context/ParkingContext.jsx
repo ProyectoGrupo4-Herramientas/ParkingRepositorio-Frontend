@@ -242,6 +242,16 @@ export function ParkingProvider({ children }) {
                 }
                 addNotification("success", `Entrada aprobada — ${placa?.toUpperCase()}`);
                 await loadAll();
+                // Asociar el vehículo a la plaza para que el modal muestre los datos del residente
+                if (vehicle) {
+                    setParkingSpaces((prev) =>
+                        prev.map((s) =>
+                            s.id === (plateToSpace.current.get(plate) ?? -1)
+                                ? { ...s, vehiculoId: vehicle.id, ocupado: true }
+                                : s,
+                        ),
+                    );
+                }
             } catch (err) {
                 addNotification("alert", `No se pudo registrar la entrada — ${placa}`, err?.message || "");
             }
@@ -269,10 +279,18 @@ export function ParkingProvider({ children }) {
                         estadoOcupacion: "LIBRE",
                         zonaEstacionamientoId: target.zonaId,
                     });
-                    plateToSpace.current.delete(plate);
                 }
                 addNotification("info", `Salida registrada — ${placa?.toUpperCase()}`);
                 await loadAll();
+                // Limpiar la asociación vehículo-plaza en el estado local
+                setParkingSpaces((prev) =>
+                    prev.map((s) =>
+                        s.id === (plateToSpace.current.get(plate) ?? -1)
+                            ? { ...s, vehiculoId: null, ocupado: false, placaActual: null }
+                            : s,
+                    ),
+                );
+                plateToSpace.current.delete(plate);
             } catch (err) {
                 addNotification("warning", `Sin entrada activa — ${placa?.toUpperCase()}`, err?.message || "");
             }
