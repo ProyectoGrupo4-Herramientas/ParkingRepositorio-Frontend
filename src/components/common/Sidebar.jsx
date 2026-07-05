@@ -9,6 +9,7 @@ import {
   HelpCircle,
   LogOut,
   PlusCircle,
+  Clock,
 } from "lucide-react";
 
 const navLinks = [
@@ -62,13 +63,25 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
             </NavLink>
           ))}
 
-          {/* Registrar vehículo — como botón en la navegación */}
+          {/* Registrar vehículo */}
           <button
             onClick={() => { onOpenModal(); onClose(); }}
             className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-brand hover:text-white transition-colors w-full text-left"
           >
             <PlusCircle size={20} />
             Registrar Nuevo Vehículo
+          </button>
+
+          {/* Crear pase temporal */}
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("open:guest-pass"));
+              onClose();
+            }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-brand hover:text-white transition-colors w-full text-left"
+          >
+            <Clock size={20} />
+            Crear Pase Temporal
           </button>
         </nav>
 

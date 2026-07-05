@@ -14,6 +14,7 @@ import {
   ArrowRight,
   TrendingUp,
   Activity,
+  Clock,
 } from "lucide-react";
 
 function MetricCard({ icon: Icon, label, value, bgColor, iconColor }) {
@@ -158,7 +159,14 @@ export default function DashboardPage() {
       label: "Registrar Vehículo",
       desc: "Asociar un nuevo vehículo a propietario o unidad.",
       to: null,
-      isAction: true,
+      isAction: "register-vehicle",
+    },
+    {
+      icon: Clock,
+      label: "Crear Pase Temporal",
+      desc: "Autorizar ingreso de vehículo por tiempo limitado.",
+      to: null,
+      isAction: "guest-pass",
     },
     {
       icon: Users,
@@ -261,8 +269,7 @@ export default function DashboardPage() {
             <button
               key={item.label}
               onClick={() => {
-                const event = new CustomEvent("open:register-vehicle");
-                window.dispatchEvent(event);
+                window.dispatchEvent(new CustomEvent(`open:${item.isAction}`));
               }}
               className="group bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] p-5 text-left hover:shadow-md hover:border-slate-200 transition-all cursor-pointer"
             >

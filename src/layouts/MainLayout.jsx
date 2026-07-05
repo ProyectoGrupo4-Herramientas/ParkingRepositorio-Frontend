@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import Sidebar from "../components/common/Sidebar";
 import Topbar from "../components/common/Topbar";
 import VehicleModal from "../components/parking/components/VehicleModal";
+import GuestPassModal from "../components/parking/components/GuestPassModal";
 import { useParking } from "../components/parking/context/ParkingContext";
 
 export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGuestPassOpen, setIsGuestPassOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { addVehicle } = useParking();
@@ -15,6 +17,12 @@ export default function MainLayout({ children }) {
     const handler = () => setIsModalOpen(true);
     window.addEventListener("open:register-vehicle", handler);
     return () => window.removeEventListener("open:register-vehicle", handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setIsGuestPassOpen(true);
+    window.addEventListener("open:guest-pass", handler);
+    return () => window.removeEventListener("open:guest-pass", handler);
   }, []);
 
   // El VehicleModal rediseñado entrega { placa, usuarioId, marca, modelo, color, ... }.
@@ -54,6 +62,11 @@ export default function MainLayout({ children }) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveGlobalVehicle}
+      />
+
+      <GuestPassModal
+        isOpen={isGuestPassOpen}
+        onClose={() => setIsGuestPassOpen(false)}
       />
     </div>
   );
