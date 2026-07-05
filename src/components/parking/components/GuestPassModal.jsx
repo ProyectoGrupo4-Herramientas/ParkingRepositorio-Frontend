@@ -47,8 +47,8 @@ export default function GuestPassModal({ isOpen, onClose }) {
         placa: plateU,
         apartamentoId: apartamentoId ? Number(apartamentoId) : null,
         usuarioId: null,
-        fechaInicio: new Date(fechaInicio).toISOString(),
-        fechaFin: new Date(fechaFin).toISOString(),
+        fechaInicio: new Date(fechaInicio).toISOString().replace(".000Z", ""),
+        fechaFin: new Date(fechaFin).toISOString().replace(".000Z", ""),
       });
       setCreatedCode(pase?.codigo || pase?.codigoPase || "PASE-XXXXXXXX");
       addNotification("success", `Pase temporal creado para ${plateU}`);
