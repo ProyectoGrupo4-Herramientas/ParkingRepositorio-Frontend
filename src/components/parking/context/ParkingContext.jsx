@@ -213,15 +213,16 @@ export function ParkingProvider({ children }) {
 
     // ── ACCESO ──
     const grantAccess = useCallback(
-        async (placa, observacion) => {
+        async (placa, observacion, tipoOcupanteOverride) => {
             try {
                 const plate = (placa || "").toUpperCase();
                 const vehicle = vehicles.find((v) => v.placa === plate);
+                const ocupante = tipoOcupanteOverride || vehicle?.tipoOcupanteRaw || "VISITANTE";
                 await parkingService.registrarEntrada({
                     placa: plate,
                     metodo: "MANUAL",
                     observacion: observacion || null,
-                    tipoOcupante: vehicle?.tipoOcupanteRaw || "VISITANTE",
+                    tipoOcupante: ocupante,
                 });
                 // Marcar la primera plaza disponible del condominio del vehículo como OCUPADO
                 if (vehicle) {

@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParking } from "../context/ParkingContext";
+import { parkingService } from "../../../services/parkingService";
 import CameraPanel from "./CameraPanel";
 
 const PUERTAS = ["Entrada Principal", "Entrada Secundaria"];
@@ -8,43 +9,78 @@ export default function VehicleEntry() {
   const [plate, setPlate] = useState("");
   const [puerta, setPuerta] = useState(PUERTAS[0]);
   const [showModal, setShowModal] = useState(false);
+  const [pasesActivos, setPasesActivos] = useState([]);
 
   const { vehicles, parkingSpaces, accessLog, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
 
+  useEffect(() => {
+    parkingService.getPasesInvitados().then((all) => {
+      const now = new Date();
+      setPasesActivos(
+        all.filter(
+          (p) =>
+            p.estado === "ACTIVO" &&
+            new Date(p.fechaFin) >= now &&
+            new Date(p.fechaInicio) <= now,
+        ),
+      );
+    }).catch(() => {});
+  }, []);
+
   const plateU = plate.trim().toUpperCase();
 
-  // Ficha del vehículo: se busca en los vehículos ya cargados (sin llamadas extra a la API).
+  // Determinar tipo de ocupante
   const ficha = useMemo(
     () => (plateU ? vehicles.find((v) => v.placa === plateU) || null : null),
     [vehicles, plateU],
   );
-  const noRegistrada = !!plateU && !ficha;
 
-  // ¿Ya está adentro? (estancia activa = sin hora de salida)
+  const paseActivo = useMemo(
+    () => (plateU ? pasesActivos.find((p) => p.placa === plateU) || null : null),
+    [pasesActivos, plateU],
+  );
+
+  const esResidente = ficha && ficha.tipoOcupanteRaw !== "VISITANTE";
+  const esVisitanteAutorizado = !!paseActivo && !esResidente;
+
+  const tipoOcupante = esResidente
+    ? "PROPIETARIO"
+    : esVisitanteAutorizado
+      ? "INQUILINO_TEMPORAL"
+      : "DESCONOCIDO";
+
+  const noRegistrada = !!plateU && !ficha && !paseActivo;
+
+  // ¿Ya está adentro?
   const estanciaActiva = useMemo(
     () => accessLog.find((l) => l.placa === plateU && !l.horaSalida),
     [accessLog, plateU],
   );
   const yaAdentro = !!estanciaActiva;
 
-  const esResidente = ficha ? ficha.tipoOcupanteRaw !== "VISITANTE" : false;
-
   const expirado = ficha?.estado === "expirado";
 
+  const puedeIngresar = esResidente || esVisitanteAutorizado;
+
   const tieneDerecho = useMemo(() => {
-    if (!ficha) return false;
+    if (!ficha && !paseActivo) return false;
     if (expirado) return false;
-    if (!esResidente) return true;
-    const spotsEnCondominio = parkingSpaces.filter(
-      (s) => s.condominio === ficha.condominioNombre,
-    );
-    return spotsEnCondominio.some((s) => !s.ocupado && !s.enMantenimiento);
-  }, [ficha, esResidente, expirado, parkingSpaces]);
+    if (esVisitanteAutorizado) return true;
+    if (esResidente) {
+      const spotsEnCondominio = parkingSpaces.filter(
+        (s) => s.condominio === ficha.condominioNombre,
+      );
+      return spotsEnCondominio.some((s) => !s.ocupado && !s.enMantenimiento);
+    }
+    return false;
+  }, [ficha, paseActivo, esResidente, esVisitanteAutorizado, expirado, parkingSpaces]);
 
   const previewSpace = useMemo(() => {
-    if (!ficha) return null;
+    if (!ficha && !paseActivo) return null;
+    const condominio = ficha?.condominioNombre || null;
+    if (!condominio) return getFirstAvailableSpace()?.code || null;
     const spotsEnCondominio = parkingSpaces.filter(
-      (s) => s.condominio === ficha.condominioNombre,
+      (s) => s.condominio === condominio,
     );
     const space =
       spotsEnCondominio.find((s) => !s.ocupado && !s.enMantenimiento) ||
@@ -53,7 +89,7 @@ export default function VehicleEntry() {
   }, [parkingSpaces, getFirstAvailableSpace, ficha]);
 
   const handleGrantAccess = () => {
-    grantAccess(plate, `Puerta: ${puerta}`);
+    grantAccess(plate, `Puerta: ${puerta}`, tipoOcupante);
     setShowModal(false);
   };
 
@@ -122,17 +158,20 @@ export default function VehicleEntry() {
 
       {/* Validación + ficha */}
       <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-        {ficha ? (
+        {esResidente && ficha ? (
           <>
             <div className="flex items-start gap-4 mb-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${esResidente ? "bg-green-100" : "bg-blue-100"}`}>
-                <span className={`material-symbols-outlined text-2xl ${esResidente ? "text-green-600" : "text-blue-600"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                  {esResidente ? "check_circle" : "info"}
+              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl text-green-600" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  check_circle
                 </span>
               </div>
-              <div>
-                <h4 className="font-semibold text-slate-800 mb-1">{ficha.usuarioNombre}</h4>
-                <p className="text-sm text-slate-500">{ficha.marca} {ficha.modelo} {ficha.color} · {ficha.tipoOcupanteRaw}</p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-slate-800">{ficha.usuarioNombre}</h4>
+                  <span className="text-[11px] font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Residente</span>
+                </div>
+                <p className="text-sm text-slate-500">{ficha.marca} {ficha.modelo} {ficha.color}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
@@ -141,8 +180,37 @@ export default function VehicleEntry() {
               <FichaItem label="Piso" value={ficha.pisoNumero} />
               <FichaItem label="Depto" value={ficha.unidad} />
             </div>
+            <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">check_circle</span> Puede ingresar
+            </div>
           </>
-        ) : ficha && expirado ? (
+        ) : esVisitanteAutorizado && paseActivo ? (
+          <>
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl text-indigo-500" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  badge
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-slate-800">{paseActivo.nombreInvitado || plateU}</h4>
+                  <span className="text-[11px] font-medium text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">Visitante autorizado</span>
+                </div>
+                <p className="text-sm text-slate-500">
+                  {paseActivo.codigo ? `Pase ${paseActivo.codigo}` : "Pase temporal"}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-2">
+              <FichaItem label="Apartamento" value={paseActivo.apartamentoId || "—"} />
+              <FichaItem label="Válido hasta" value={new Date(paseActivo.fechaFin).toLocaleDateString("es-PE")} />
+            </div>
+            <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">check_circle</span> Puede ingresar
+            </div>
+          </>
+        ) : expirado ? (
           <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
             <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
             <div>
@@ -152,7 +220,17 @@ export default function VehicleEntry() {
               </p>
             </div>
           </div>
-        ) : ficha && !tieneDerecho ? (
+        ) : tipoOcupante === "DESCONOCIDO" && plateU ? (
+          <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+            <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
+            <div>
+              <p className="text-sm font-semibold text-red-700">Acceso denegado — Vehículo no autorizado</p>
+              <p className="text-sm text-red-600">
+                La placa <strong>{plate}</strong> no corresponde a un residente ni a un visitante con pase vigente. No se puede conceder el ingreso.
+              </p>
+            </div>
+          </div>
+        ) : !tieneDerecho && ficha ? (
           <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
             <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
             <div>
@@ -166,11 +244,11 @@ export default function VehicleEntry() {
           <div className="flex items-center gap-3 mb-4">
             <span className="material-symbols-outlined text-amber-500 text-2xl">block</span>
             <p className="text-sm text-slate-600">
-              Matrícula <strong>{plate}</strong> no registrada. Regístrala primero en <strong>Directorio de Residentes</strong> para concederle acceso.
+              Matrícula <strong>{plate}</strong> no registrada. Regístrala primero en <strong>Directorio de Residentes</strong> o crea un <strong>Pase Temporal</strong>.
             </p>
           </div>
         ) : (
-          <p className="text-sm text-slate-400 mb-4">Escanea o escribe una placa registrada para ver su información.</p>
+          <p className="text-sm text-slate-400 mb-4">Escanea o escribe una placa para ver su información.</p>
         )}
 
         {/* Aviso si ya está adentro */}
@@ -210,7 +288,7 @@ export default function VehicleEntry() {
         ) : (
           <button
             onClick={() => setShowModal(true)}
-            disabled={!ficha || expirado || (esResidente && !tieneDerecho)}
+            disabled={!puedeIngresar || expirado || !tieneDerecho}
             className="w-full bg-brand text-white py-3 px-4 rounded font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-sm">login</span>

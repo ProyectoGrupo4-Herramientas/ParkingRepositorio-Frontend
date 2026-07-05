@@ -116,6 +116,7 @@ export const parkingService = {
             fechaInicio: p.fechaInicio,
             fechaFin: p.fechaFin,
             estado: p.estado,
+            nombreInvitado: p.nombreInvitado || "",
         })),
 
     createPaseInvitado: (data) =>
@@ -128,6 +129,7 @@ export const parkingService = {
                 fechaInicio: data.fechaInicio,
                 fechaFin: data.fechaFin,
                 estado: "ACTIVO",
+                nombreInvitado: data.nombreInvitado || "",
             }),
         }),
 

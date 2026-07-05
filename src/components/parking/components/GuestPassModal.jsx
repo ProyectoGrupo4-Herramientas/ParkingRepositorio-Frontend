@@ -7,6 +7,7 @@ export default function GuestPassModal({ isOpen, onClose }) {
   const { vehicles, addNotification } = useParking();
 
   const [plate, setPlate] = useState("");
+  const [nombreInvitado, setNombreInvitado] = useState("");
   const [apartamentoId, setApartamentoId] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
@@ -16,6 +17,7 @@ export default function GuestPassModal({ isOpen, onClose }) {
   useEffect(() => {
     if (!isOpen) {
       setPlate("");
+      setNombreInvitado("");
       setApartamentoId("");
       setFechaInicio("");
       setFechaFin("");
@@ -45,6 +47,7 @@ export default function GuestPassModal({ isOpen, onClose }) {
     try {
       const pase = await parkingService.createPaseInvitado({
         placa: plateU,
+        nombreInvitado: nombreInvitado.trim() || plateU,
         apartamentoId: apartamentoId ? Number(apartamentoId) : null,
         usuarioId: null,
         fechaInicio: new Date(fechaInicio).toISOString().replace(".000Z", ""),
@@ -119,6 +122,18 @@ export default function GuestPassModal({ isOpen, onClose }) {
                   Placa no encontrada. Regístrala primero en "Registrar Nuevo Vehículo".
                 </p>
               )}
+            </div>
+
+            {/* NOMBRE DEL INVITADO */}
+            <div>
+              <label className="text-sm font-medium">Nombre del invitado</label>
+              <input
+                type="text"
+                value={nombreInvitado}
+                onChange={(e) => setNombreInvitado(e.target.value)}
+                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="Nombre completo"
+              />
             </div>
 
             {/* APARTAMENTO (opcional, se auto-completa del vehículo) */}
