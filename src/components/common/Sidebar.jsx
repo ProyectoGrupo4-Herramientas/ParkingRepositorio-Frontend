@@ -14,8 +14,8 @@ import {
 const navLinks = [
   { to: "/", icon: LayoutDashboard, label: "Panel" },
   { to: "/access", icon: Shield, label: "Control de Acceso" },
-  { to: "/residents", icon: Users, label: "Directorio de Residentes" },
   { to: "/parking", icon: Map, label: "Mapa de Estacionamiento" },
+  { to: "/residents", icon: Users, label: "Directorio de Residentes" },
   { to: "/history", icon: History, label: "Historial de Acceso" },
 ];
 
@@ -42,17 +42,6 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
           <p className="text-xs text-slate-400">Gestión Urbana</p>
         </div>
 
-        {/* button */}
-        <div className="px-4 mb-6">
-          <button
-            onClick={onOpenModal}
-            className="w-full bg-brand text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-brand-dark"
-          >
-            <PlusCircle size={18} />
-            Registrar Nuevo Vehículo
-          </button>
-        </div>
-
         {/* nav */}
         <nav className="flex-1 flex flex-col gap-1 px-2">
           {navLinks.map(({ to, icon: Icon, label }) => (
@@ -72,6 +61,15 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
               {label}
             </NavLink>
           ))}
+
+          {/* Registrar vehículo — como botón en la navegación */}
+          <button
+            onClick={() => { onOpenModal(); onClose(); }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-brand hover:text-white transition-colors w-full text-left"
+          >
+            <PlusCircle size={20} />
+            Registrar Nuevo Vehículo
+          </button>
         </nav>
 
         {/* bottom */}
