@@ -269,16 +269,26 @@ export function ParkingProvider({ children }) {
                     tipoOcupante: vehicle?.tipoOcupanteRaw || "VISITANTE",
                 });
                 // Marcar como LIBRE la plaza que tenía este vehículo
+                let target = null;
                 const espacioId = plateToSpace.current.get(plate);
-                const target = espacioId
-                    ? parkingSpaces.find((s) => s.id === espacioId)
-                    : null;
+                if (espacioId) {
+                    target = parkingSpaces.find((s) => s.id === espacioId);
+                }
+                // Fallback: buscar por placaActual o por ocupado sin vehículo
+                if (!target) {
+                    target = parkingSpaces.find(
+                        (s) => s.placaActual === plate || (s.ocupado && !s.vehiculoId),
+                    );
+                }
                 if (target) {
-                    await parkingService.updateEstacionamiento(target.id, {
-                        codigo: target.code,
-                        estadoOcupacion: "LIBRE",
-                        zonaEstacionamientoId: target.zonaId,
-                    });
+                    try {
+                        await parkingService.updateEstacionamiento(target.id, {
+                            codigo: target.code,
+                            estadoOcupacion: "LIBRE",
+                            zonaEstacionamientoId: target.zonaId,
+                        });
+                    } catch (_) { /* si falla la API, continuamos */ }
+                    plateToSpace.current.set(plate, target.id);
                 }
                 addNotification("info", `Salida registrada — ${placa?.toUpperCase()}`);
                 await loadAll();
