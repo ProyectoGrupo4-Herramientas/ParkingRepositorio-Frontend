@@ -9,7 +9,7 @@ export default function VehicleEntry() {
   const [puerta, setPuerta] = useState(PUERTAS[0]);
   const [showModal, setShowModal] = useState(false);
 
-  const { vehicles, accessLog, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
+  const { vehicles, parkingSpaces, accessLog, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
 
   const plateU = plate.trim().toUpperCase();
 
@@ -29,10 +29,25 @@ export default function VehicleEntry() {
 
   const esResidente = ficha ? ficha.tipoOcupanteRaw !== "VISITANTE" : false;
 
+  const tieneDerecho = useMemo(() => {
+    if (!ficha) return false;
+    if (!esResidente) return true;
+    const spotsEnCondominio = parkingSpaces.filter(
+      (s) => s.condominio === ficha.condominioNombre,
+    );
+    return spotsEnCondominio.some((s) => !s.ocupado && !s.enMantenimiento);
+  }, [ficha, esResidente, parkingSpaces]);
+
   const previewSpace = useMemo(() => {
-    const space = getFirstAvailableSpace();
+    if (!ficha) return null;
+    const spotsEnCondominio = parkingSpaces.filter(
+      (s) => s.condominio === ficha.condominioNombre,
+    );
+    const space =
+      spotsEnCondominio.find((s) => !s.ocupado && !s.enMantenimiento) ||
+      getFirstAvailableSpace();
     return space?.code || space?.id || null;
-  }, [getFirstAvailableSpace, ficha]);
+  }, [parkingSpaces, getFirstAvailableSpace, ficha]);
 
   const handleGrantAccess = () => {
     grantAccess(plate, `Puerta: ${puerta}`);
@@ -124,6 +139,16 @@ export default function VehicleEntry() {
               <FichaItem label="Depto" value={ficha.unidad} />
             </div>
           </>
+        ) : ficha && !tieneDerecho ? (
+          <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+            <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
+            <div>
+              <p className="text-sm font-semibold text-red-700">Acceso denegado</p>
+              <p className="text-sm text-red-600">
+                El condominio <strong>{ficha.condominioNombre}</strong> no tiene espacios disponibles. No se puede conceder el ingreso.
+              </p>
+            </div>
+          </div>
         ) : noRegistrada ? (
           <div className="flex items-center gap-3 mb-4">
             <span className="material-symbols-outlined text-amber-500 text-2xl">block</span>
@@ -172,7 +197,7 @@ export default function VehicleEntry() {
         ) : (
           <button
             onClick={() => setShowModal(true)}
-            disabled={!ficha}
+            disabled={!ficha || (esResidente && !tieneDerecho)}
             className="w-full bg-brand text-white py-3 px-4 rounded font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-sm">login</span>
