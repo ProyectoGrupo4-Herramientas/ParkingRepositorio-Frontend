@@ -40,8 +40,8 @@ export default function VehicleEntry() {
     [pasesActivos, plateU],
   );
 
-  const esResidente = ficha && ficha.tipoOcupanteRaw !== "VISITANTE";
-  const esVisitanteAutorizado = !!paseActivo && !esResidente;
+  const esVisitanteAutorizado = !!paseActivo;
+  const esResidente = ficha && ficha.tipoOcupanteRaw !== "VISITANTE" && !esVisitanteAutorizado;
 
   const tipoOcupante = esResidente
     ? "PROPIETARIO"
