@@ -29,14 +29,17 @@ export default function VehicleEntry() {
 
   const esResidente = ficha ? ficha.tipoOcupanteRaw !== "VISITANTE" : false;
 
+  const expirado = ficha?.estado === "expirado";
+
   const tieneDerecho = useMemo(() => {
     if (!ficha) return false;
+    if (expirado) return false;
     if (!esResidente) return true;
     const spotsEnCondominio = parkingSpaces.filter(
       (s) => s.condominio === ficha.condominioNombre,
     );
     return spotsEnCondominio.some((s) => !s.ocupado && !s.enMantenimiento);
-  }, [ficha, esResidente, parkingSpaces]);
+  }, [ficha, esResidente, expirado, parkingSpaces]);
 
   const previewSpace = useMemo(() => {
     if (!ficha) return null;
@@ -139,6 +142,16 @@ export default function VehicleEntry() {
               <FichaItem label="Depto" value={ficha.unidad} />
             </div>
           </>
+        ) : ficha && expirado ? (
+          <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+            <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
+            <div>
+              <p className="text-sm font-semibold text-red-700">Acceso denegado — Permiso vencido</p>
+              <p className="text-sm text-red-600">
+                El permiso del vehículo <strong>{plate}</strong> ha expirado. Renueva el registro en <strong>Directorio de Residentes</strong>.
+              </p>
+            </div>
+          </div>
         ) : ficha && !tieneDerecho ? (
           <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
             <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
@@ -197,7 +210,7 @@ export default function VehicleEntry() {
         ) : (
           <button
             onClick={() => setShowModal(true)}
-            disabled={!ficha || (esResidente && !tieneDerecho)}
+            disabled={!ficha || expirado || (esResidente && !tieneDerecho)}
             className="w-full bg-brand text-white py-3 px-4 rounded font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-sm">login</span>

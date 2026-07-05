@@ -165,6 +165,8 @@ export function ParkingProvider({ children }) {
                     color: data.color || "",
                     estado: data.estado === "expirado" ? "INACTIVO" : "ACTIVO",
                     usuarioId: data.usuarioId || getCurrentUserId(),
+                    tipoRegistro: data.tipoRegistro || "Propietario",
+                    idApartamento: data.idApartamento || null,
                 });
                 addNotification("success", `Vehículo registrado — ${data.placa}`);
                 await loadAll();
@@ -213,13 +215,15 @@ export function ParkingProvider({ children }) {
     const grantAccess = useCallback(
         async (placa, observacion) => {
             try {
+                const plate = (placa || "").toUpperCase();
+                const vehicle = vehicles.find((v) => v.placa === plate);
                 await parkingService.registrarEntrada({
-                    placa: (placa || "").toUpperCase(),
+                    placa: plate,
                     metodo: "MANUAL",
                     observacion: observacion || null,
+                    tipoOcupante: vehicle?.tipoOcupanteRaw || "VISITANTE",
                 });
                 // Marcar la primera plaza disponible del condominio del vehículo como OCUPADO
-                const vehicle = vehicles.find((v) => v.placa === (placa || "").toUpperCase());
                 if (vehicle) {
                     const libre = parkingSpaces.find(
                         (s) => s.condominio === vehicle.condominioNombre && !s.ocupado && !s.enMantenimiento,

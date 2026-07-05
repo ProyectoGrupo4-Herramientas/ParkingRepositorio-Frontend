@@ -77,13 +77,14 @@ export const parkingService = {
         arr(await req("/api/condominios")).map((c) => ({ id: c.idCondominio, nombre: c.nombre })),
     getInquilinos: async (condominioId) =>
         arr(await req("/api/usuarios"))
-            .filter((u) => condominioId == null || String(u.idCondominio) === String(condominioId))
+            .filter((u) => condominioId == null || String(u.condominioId) === String(condominioId))
             .map((u) => ({
                 id: u.idUsuario,
                 nombres: u.nombreCompleto,
                 apellidos: "",
                 unidad: u.unidad || null,
                 apartamentoId: u.idApartamento || null,
+                tipoOcupante: u.tipoOcupante || "PROPIETARIO",
             })),
 
     createVehiculo: (data) =>
@@ -93,9 +94,9 @@ export const parkingService = {
                 matricula: data.placa,
                 idUsuarioPropietario: data.usuarioId,
                 marcaModelo: [data.marca, data.modelo].filter(Boolean).join(" ") || "",
-                estado: "ACTIVO",
-                tipoRegistro: "Propietario",
-                idApartamento: 1,
+                estado: data.estado || "ACTIVO",
+                tipoRegistro: data.tipoRegistro || "Propietario",
+                idApartamento: data.idApartamento || null,
             }),
         }),
     updateVehiculo: (id, data) =>
@@ -106,6 +107,19 @@ export const parkingService = {
     deleteVehiculo: (id) => req(`/api/vehiculos/${id}`, { method: "DELETE" }),
     updateEstacionamiento: (id, data) =>
         req(`/api/estacionamientos/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+    createPaseInvitado: (data) =>
+        req("/api/pases-invitados", {
+            method: "POST",
+            body: JSON.stringify({
+                matricula: data.placa,
+                idApartamento: data.apartamentoId,
+                idUsuarioEmisor: data.usuarioId,
+                fechaInicio: data.fechaInicio,
+                fechaFin: data.fechaFin,
+                estado: "ACTIVO",
+            }),
+        }),
 
     // No usados por las páginas principales (el dashboard calcula del contexto).
     getParkingStats: async () => null,

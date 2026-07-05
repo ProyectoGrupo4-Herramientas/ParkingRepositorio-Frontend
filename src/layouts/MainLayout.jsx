@@ -26,6 +26,8 @@ export default function MainLayout({ children }) {
       modelo: nv.modelo,
       color: nv.color,
       estado: "activo",
+      tipoRegistro: nv.tipoRegistro,
+      idApartamento: nv.apartamentoId,
     });
     setIsModalOpen(false);
   };
