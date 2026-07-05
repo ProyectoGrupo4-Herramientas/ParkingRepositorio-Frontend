@@ -347,6 +347,7 @@ export function ParkingProvider({ children }) {
         loading,
         error,
         reload: loadAll,
+        addNotification,
 
         recentActivity,
         activeVehicles,
