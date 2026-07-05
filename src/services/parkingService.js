@@ -107,6 +107,17 @@ export const parkingService = {
     updateEstacionamiento: (id, data) =>
         req(`/api/estacionamientos/${id}`, { method: "PUT", body: JSON.stringify(data) }),
 
+    getPasesInvitados: async () =>
+        arr(await req("/api/pases-invitados")).map((p) => ({
+            id: p.idPase,
+            codigo: p.codigoPase,
+            placa: p.matricula,
+            apartamentoId: p.idApartamento,
+            fechaInicio: p.fechaInicio,
+            fechaFin: p.fechaFin,
+            estado: p.estado,
+        })),
+
     createPaseInvitado: (data) =>
         req("/api/pases-invitados", {
             method: "POST",

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { X, Search } from "lucide-react";
+import { X, Search, CheckCircle } from "lucide-react";
 import { parkingService } from "../../../services/parkingService";
 import { useParking } from "../context/ParkingContext";
 
@@ -11,6 +11,7 @@ export default function GuestPassModal({ isOpen, onClose }) {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [createdCode, setCreatedCode] = useState(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -18,6 +19,7 @@ export default function GuestPassModal({ isOpen, onClose }) {
       setApartamentoId("");
       setFechaInicio("");
       setFechaFin("");
+      setCreatedCode(null);
     } else {
       setFechaInicio(new Date().toISOString().split("T")[0]);
     }
@@ -41,20 +43,25 @@ export default function GuestPassModal({ isOpen, onClose }) {
     }
     setSubmitting(true);
     try {
-      await parkingService.createPaseInvitado({
+      const pase = await parkingService.createPaseInvitado({
         placa: plateU,
         apartamentoId: apartamentoId ? Number(apartamentoId) : null,
         usuarioId: null,
         fechaInicio: new Date(fechaInicio).toISOString(),
         fechaFin: new Date(fechaFin).toISOString(),
       });
+      setCreatedCode(pase?.codigo || pase?.codigoPase || "PASE-XXXXXXXX");
       addNotification("success", `Pase temporal creado para ${plateU}`);
-      onClose();
     } catch (err) {
       addNotification("alert", "No se pudo crear el pase temporal", err?.message || "");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleDone = () => {
+    setCreatedCode(null);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -68,7 +75,25 @@ export default function GuestPassModal({ isOpen, onClose }) {
           <button onClick={onClose}><X className="w-5 h-5" /></button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+        {createdCode ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+            <CheckCircle size={32} className="text-green-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-1">Pase creado exitosamente</h3>
+          <p className="text-sm text-slate-500 mb-4">
+            El vehículo <strong>{plateU}</strong> tiene acceso autorizado hasta el {new Date(fechaFin).toLocaleDateString("es-PE")}.
+          </p>
+          <div className="bg-slate-50 border border-slate-200 rounded-lg px-5 py-3 mb-6">
+            <p className="text-xs text-slate-400 mb-0.5">Código del pase</p>
+            <p className="text-lg font-mono font-bold text-slate-900">{createdCode}</p>
+          </div>
+          <button onClick={handleDone} className="px-6 py-2 bg-brand text-white rounded-lg font-medium">
+            Finalizar
+          </button>
+        </div>
+      ) : (
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
 
             {/* PLACA */}
@@ -150,6 +175,7 @@ export default function GuestPassModal({ isOpen, onClose }) {
             </button>
           </div>
         </form>
+      )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParking } from "../context/ParkingContext";
 import { Link } from "react-router-dom";
+import { parkingService } from "../../../services/parkingService";
 import {
   Car,
   ParkingSquare,
@@ -93,6 +94,21 @@ function PlaceholderChart() {
 
 export default function DashboardPage() {
   const { parkingSpaces, accessLog, spacesAvailable, spacesOccupied } = useParking();
+
+  const [pasesActivos, setPasesActivos] = useState([]);
+
+  useEffect(() => {
+    parkingService.getPasesInvitados().then((all) => {
+      const now = new Date();
+      const activos = all.filter(
+        (p) =>
+          p.estado === "ACTIVO" &&
+          new Date(p.fechaFin) >= now &&
+          new Date(p.fechaInicio) <= now,
+      );
+      setPasesActivos(activos);
+    }).catch(() => {});
+  }, []);
 
   const vehiclesInside = useMemo(
     () => accessLog.filter((l) => !l.horaSalida).length,
@@ -254,6 +270,32 @@ export default function DashboardPage() {
           </p>
         </div>
       </div>
+
+      {/* ──────── SECCIÓN 3.5: Pases Activos ──────── */}
+      {pasesActivos.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-base font-semibold text-slate-900 mb-3">Pases Temporales Activos</h2>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] divide-y divide-slate-100">
+            {pasesActivos.map((p) => (
+              <div key={p.id} className="flex items-center gap-4 px-5 py-3.5">
+                <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                  <Clock size={18} className="text-indigo-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900">{p.placa}</p>
+                  <p className="text-xs text-slate-400">
+                    Hasta el {new Date(p.fechaFin).toLocaleDateString("es-PE")}
+                    {p.codigo ? ` · ${p.codigo}` : ""}
+                  </p>
+                </div>
+                <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full shrink-0">
+                  Activo
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ──────── SECCIÓN 4: Acceso Directo ──────── */}
       <div className="flex items-center justify-between mb-4">
