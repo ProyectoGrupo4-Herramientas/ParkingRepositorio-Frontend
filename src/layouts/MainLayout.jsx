@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/common/Sidebar";
 import Topbar from "../components/common/Topbar";
 import VehicleModal from "../components/parking/components/VehicleModal";
@@ -10,6 +10,12 @@ export default function MainLayout({ children }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { addVehicle } = useParking();
+
+  useEffect(() => {
+    const handler = () => setIsModalOpen(true);
+    window.addEventListener("open:register-vehicle", handler);
+    return () => window.removeEventListener("open:register-vehicle", handler);
+  }, []);
 
   // El VehicleModal rediseñado entrega { placa, usuarioId, marca, modelo, color, ... }.
   const handleSaveGlobalVehicle = (nv) => {
