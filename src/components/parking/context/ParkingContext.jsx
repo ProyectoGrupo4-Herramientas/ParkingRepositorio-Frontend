@@ -11,6 +11,7 @@ import {
     useState,
     useEffect,
     useCallback,
+    useRef,
 } from "react";
 import { format } from "date-fns";
 import { parkingService } from "../../../services/parkingService";
@@ -102,6 +103,7 @@ export function ParkingProvider({ children }) {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const plateToSpace = useRef(new Map());
 
     const generateId = (prefix) =>
         `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -235,6 +237,7 @@ export function ParkingProvider({ children }) {
                             estadoOcupacion: "OCUPADO",
                             zonaEstacionamientoId: libre.zonaId,
                         });
+                        plateToSpace.current.set(plate, libre.id);
                     }
                 }
                 addNotification("success", `Entrada aprobada — ${placa?.toUpperCase()}`);
@@ -256,15 +259,17 @@ export function ParkingProvider({ children }) {
                     tipoOcupante: vehicle?.tipoOcupanteRaw || "VISITANTE",
                 });
                 // Marcar como LIBRE la plaza que tenía este vehículo
-                const target = parkingSpaces.find(
-                    (s) => s.placaActual === (placa || "").toUpperCase(),
-                );
+                const espacioId = plateToSpace.current.get(plate);
+                const target = espacioId
+                    ? parkingSpaces.find((s) => s.id === espacioId)
+                    : null;
                 if (target) {
                     await parkingService.updateEstacionamiento(target.id, {
                         codigo: target.code,
                         estadoOcupacion: "LIBRE",
                         zonaEstacionamientoId: target.zonaId,
                     });
+                    plateToSpace.current.delete(plate);
                 }
                 addNotification("info", `Salida registrada — ${placa?.toUpperCase()}`);
                 await loadAll();
