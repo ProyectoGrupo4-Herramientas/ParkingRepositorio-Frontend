@@ -35,6 +35,7 @@ export default function ParkingSpot({ spot, onClick, isSelected }) {
   };
 
   const c = config[spot.status] || config.available;
+  const esMoto = spot.tipoVehiculo === "MOTO";
   return (
     <button
       onClick={onClick}
@@ -45,15 +46,28 @@ export default function ParkingSpot({ spot, onClick, isSelected }) {
         ${isSelected ? "ring-2 ring-slate-900 ring-offset-1" : ""}
       `}
     >
-      {/* Código de la plaza */}
+      {/* Código de la plaza + tipo de vehículo (spec V6) */}
       <div className="flex items-center justify-between px-2 pt-1.5">
         <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 truncate">
           {spot.code}
         </span>
-        <span className="material-symbols-outlined text-slate-300 shrink-0" style={{ fontSize: 14 }}>
-          local_parking
+        <span
+          className={`material-symbols-outlined shrink-0 ${esMoto ? "text-indigo-400" : "text-slate-300"}`}
+          style={{ fontSize: 14 }}
+          title={esMoto ? "Plaza de motos" : "Plaza de auto"}
+        >
+          {esMoto ? "two_wheeler" : "local_parking"}
         </span>
       </div>
+
+      {/* Cupo de motos (1 auto = varias motos, spec V6) */}
+      {esMoto && (
+        <div className="px-2 pt-0.5">
+          <span className="inline-block text-[8px] sm:text-[9px] font-bold text-indigo-700 bg-indigo-100 rounded px-1 py-0.5 tracking-wide">
+            MOTO {spot.ocupacionActual ?? 0}/{spot.capacidad ?? 1}
+          </span>
+        </div>
+      )}
 
       {/* Bahía: auto / icono de estado */}
       <div className={`mx-2 mt-1 rounded-lg ${c.bay} flex items-center justify-center h-11 sm:h-14`}>

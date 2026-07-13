@@ -55,6 +55,10 @@ const mapEstacionamiento = (e) => ({
     enMantenimiento: (e.estadoOcupacion || "") === "INACTIVO",
     vehiculoId: e.idVehiculoActual || e.vehiculoActualId || null,
     placaActual: e.placaActual || null,
+    // Spec V6: tipo de vehículo (AUTO/MOTO), cupo y ocupación de la plaza.
+    tipoVehiculo: e.tipoVehiculo || "AUTO",
+    capacidad: e.capacidad ?? 1,
+    ocupacionActual: e.ocupacionActual ?? 0,
 });
 
 const calcDuracion = (entrada, salida) => {

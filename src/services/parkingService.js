@@ -44,6 +44,10 @@ const normEstacionamiento = (e) => ({
     id: e.idEstacionamiento,
     codigo: e.codigoPlaza,
     estadoOcupacion: e.estadoOcupacion,
+    // Spec V6: tipo de vehículo (AUTO/MOTO), cupo y ocupación de la plaza.
+    tipoVehiculo: e.tipoVehiculo || "AUTO",
+    capacidad: e.capacidad ?? 1,
+    ocupacionActual: e.ocupacionActual ?? 0,
     zonaNombre: e.zonaNombre,
     zonaEstacionamientoId: e.zonaEstacionamientoId ?? null,
     condominioId: e.idCondominio,

@@ -37,6 +37,10 @@ export function useParkingSelection() {
           : space.ocupado
             ? "occupied"
             : "available",
+        // Spec V6: tipo de vehículo (AUTO/MOTO), cupo y ocupación de la plaza.
+        tipoVehiculo: space.tipoVehiculo || "AUTO",
+        capacidad: space.capacidad ?? 1,
+        ocupacionActual: space.ocupacionActual ?? 0,
         plate: vehicle?.placa || logEntry?.placa || null,
         owner: vehicle?.propietario || logEntry?.propietario || null,
         desc: vehicle?.vehiculoDesc || logEntry?.vehiculoDesc || null,
