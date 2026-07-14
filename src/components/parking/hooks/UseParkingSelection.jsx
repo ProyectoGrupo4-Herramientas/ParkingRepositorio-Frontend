@@ -6,11 +6,22 @@ export function useParkingSelection() {
     parkingSpaces,
     vehicles,
     accessLog,
+    owners,
+    loans,
     reassignSpace,
     toggleSpaceMaintenance,
+    assignOwner,
+    removeOwner,
+    createLoan,
+    finalizeLoan,
   } = useParking();
   const [selectedId, setSelectedId] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  const activeLoans = useMemo(
+    () => loans.filter((l) => l.estado === "ACTIVO"),
+    [loans],
+  );
 
   const spots = useMemo(() => {
     return parkingSpaces.map((space) => {
@@ -18,12 +29,18 @@ export function useParkingSelection() {
         ? vehicles.find((v) => v.id === space.vehiculoId)
         : null;
 
-      // Si no hay vehículo registrado pero el espacio está ocupado,
-      // buscar la placa en el accessLog
       const logEntry =
         !vehicle && space.ocupado
           ? accessLog.find((l) => l.espacioId === space.id && !l.horaSalida)
           : null;
+
+      const owner = owners.find(
+        (o) => o.idEstacionamiento === space.id,
+      );
+
+      const activeLoan = activeLoans.find(
+        (l) => l.idEstacionamiento === space.id,
+      );
 
       return {
         id: space.id,
@@ -38,24 +55,22 @@ export function useParkingSelection() {
             ? "occupied"
             : "available",
         plate: vehicle?.placa || logEntry?.placa || null,
-        owner: vehicle?.propietario || logEntry?.propietario || null,
+        owner: owner?.nombreUsuario || space.propietarioNombre || null,
+        ownerId: owner?.idPropietario || null,
+        ownerUsuarioId: owner?.idUsuario || space.propietarioUsuarioId || null,
+        occupantName: vehicle?.usuarioNombre || logEntry?.propietario || null,
         desc: vehicle?.vehiculoDesc || logEntry?.vehiculoDesc || null,
         unit: vehicle?.unidad || logEntry?.unidad || null,
-        initials: vehicle?.propietario
-          ? vehicle.propietario
+        ocupanteTipo: space.ocupanteTipo || null,
+        activeLoan: activeLoan || null,
+        initials: owner?.nombreUsuario
+          ? owner.nombreUsuario
               .split(" ")
               .map((n) => n[0])
               .join("")
               .slice(0, 2)
               .toUpperCase()
-          : logEntry?.propietario
-            ? logEntry.propietario
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase()
-            : "??",
+          : "??",
         icon: space.ocupado
           ? "directions_car"
           : space.enMantenimiento
@@ -64,7 +79,7 @@ export function useParkingSelection() {
         tipo: space.tipo,
       };
     });
-  }, [parkingSpaces, vehicles, accessLog]);
+  }, [parkingSpaces, vehicles, accessLog, owners, activeLoans]);
 
   const occupancy = useMemo(() => {
     const occupied = spots.filter((s) => s.status === "occupied").length;
@@ -89,6 +104,22 @@ export function useParkingSelection() {
     toggleSpaceMaintenance(spaceId, newStatus);
   };
 
+  const handleAssignOwner = (estacionamientoId, usuarioId, nombreUsuario, placaVehiculo) => {
+    assignOwner(estacionamientoId, usuarioId, nombreUsuario, placaVehiculo);
+  };
+
+  const handleRemoveOwner = (estacionamientoId) => {
+    removeOwner(estacionamientoId);
+  };
+
+  const handleCreateLoan = (data) => {
+    createLoan(data);
+  };
+
+  const handleFinalizeLoan = (loanId) => {
+    finalizeLoan(loanId);
+  };
+
   return {
     spots,
     occupancy,
@@ -99,5 +130,9 @@ export function useParkingSelection() {
     closeModal,
     reassignSpot,
     toggleMaintenance,
+    handleAssignOwner,
+    handleRemoveOwner,
+    handleCreateLoan,
+    handleFinalizeLoan,
   };
 }

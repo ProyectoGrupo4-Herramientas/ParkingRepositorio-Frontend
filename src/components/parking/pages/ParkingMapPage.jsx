@@ -20,6 +20,10 @@ export default function ParkingMapPage() {
     closeModal,
     reassignSpot,
     toggleMaintenance,
+    handleAssignOwner,
+    handleRemoveOwner,
+    handleCreateLoan,
+    handleFinalizeLoan,
   } = useParkingSelection();
 
   const condominios = useMemo(
@@ -133,6 +137,10 @@ export default function ParkingMapPage() {
           onClose={closeModal}
           onReassign={reassignSpot}
           onToggleMaintenance={toggleMaintenance}
+          onAssignOwner={handleAssignOwner}
+          onRemoveOwner={handleRemoveOwner}
+          onCreateLoan={handleCreateLoan}
+          onFinalizeLoan={handleFinalizeLoan}
         />
       )}
     </ParkingLayout>

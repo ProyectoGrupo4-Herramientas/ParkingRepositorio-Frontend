@@ -32,6 +32,7 @@ const normVehiculo = (v) => ({
     color: v.color,
     estado: v.estado,
     usuarioNombre: v.propietarioNombre,
+    idUsuarioPropietario: v.idUsuarioPropietario,
     tipoOcupante: v.tipoOcupante,
     unidad: v.unidad,
     pisoNumero: v.pisoNumero,
@@ -50,6 +51,8 @@ const normEstacionamiento = (e) => ({
     condominioNombre: e.condominioNombre,
     vehiculoActualId: e.idVehiculoActual,
     placaActual: e.placaActual,
+    propietarioNombre: e.propietarioNombre || null,
+    propietarioUsuarioId: e.propietarioUsuarioId || null,
 });
 
 const normPermanencia = (p) => ({
@@ -133,7 +136,64 @@ export const parkingService = {
             }),
         }),
 
-    // No usados por las páginas principales (el dashboard calcula del contexto).
+    getPropietariosPlaza: async () =>
+        arr(await req("/api/propietarios-plaza")).map((p) => ({
+            idPropietario: p.idPropietario,
+            idEstacionamiento: p.idEstacionamiento,
+            idUsuario: p.idUsuario,
+            nombreUsuario: p.nombreUsuario,
+            placaVehiculo: p.placaVehiculo,
+            fechaAsignacion: p.fechaAsignacion,
+        })),
+
+    createPropietarioPlaza: (data) =>
+        req("/api/propietarios-plaza", {
+            method: "POST",
+            body: JSON.stringify({
+                idEstacionamiento: data.idEstacionamiento,
+                idUsuario: data.idUsuario,
+                nombreUsuario: data.nombreUsuario || "",
+                placaVehiculo: data.placaVehiculo || "",
+            }),
+        }),
+
+    deletePropietarioPlaza: (id) =>
+        req(`/api/propietarios-plaza/${id}`, { method: "DELETE" }),
+
+    getPrestamosPlaza: async () =>
+        arr(await req("/api/prestamos-plaza")).map((p) => ({
+            idPrestamo: p.idPrestamo,
+            idEstacionamiento: p.idEstacionamiento,
+            idPropietario: p.idPropietario,
+            nombrePropietario: p.nombrePropietario,
+            idUsuarioAutorizado: p.idUsuarioAutorizado,
+            nombreUsuarioAutorizado: p.nombreUsuarioAutorizado,
+            placaAutorizada: p.placaAutorizada,
+            fechaInicio: p.fechaInicio,
+            fechaFin: p.fechaFin,
+            estado: p.estado,
+        })),
+
+    createPrestamoPlaza: (data) =>
+        req("/api/prestamos-plaza", {
+            method: "POST",
+            body: JSON.stringify({
+                idEstacionamiento: data.idEstacionamiento,
+                idPropietario: data.idPropietario,
+                nombrePropietario: data.nombrePropietario || "",
+                idUsuarioAutorizado: data.idUsuarioAutorizado,
+                nombreUsuarioAutorizado: data.nombreUsuarioAutorizado || "",
+                placaAutorizada: data.placaAutorizada || "",
+                estado: "ACTIVO",
+            }),
+        }),
+
+    finalizarPrestamoPlaza: (id) =>
+        req(`/api/prestamos-plaza/${id}/finalizar`, { method: "POST" }),
+
+    deletePrestamoPlaza: (id) =>
+        req(`/api/prestamos-plaza/${id}`, { method: "DELETE" }),
+
     getParkingStats: async () => null,
     getVehiculoByPlaca: async () => null,
     getLogs: async () => [],

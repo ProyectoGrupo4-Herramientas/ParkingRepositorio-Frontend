@@ -1,10 +1,3 @@
-// src/components/parking/context/ParkingContext.jsx
-//
-// Contexto del módulo Parking conectado a la API real de CondoSaaS.
-// Mantiene la MISMA interfaz pública que la versión mock para no tocar las páginas:
-// vehicles, parkingSpaces, accessLog + acciones (addVehicle, grantAccess, registerExit, ...).
-// Los datos crudos de la API se mapean a la forma que esperan los componentes.
-
 import {
     createContext,
     useContext,
@@ -18,9 +11,6 @@ import { parkingService } from "../../../services/parkingService";
 
 const ParkingContext = createContext(null);
 
-// ── Helpers de mapeo API → forma de la UI ──────────────────────────
-
-// El backend usa PROPIETARIO/INQUILINO/VISITANTE; la UI de parking usa residente/visitante.
 const mapTipoOcupante = (t) => (t === "VISITANTE" ? "visitante" : "residente");
 
 const mapVehiculo = (v) => ({
@@ -33,8 +23,8 @@ const mapVehiculo = (v) => ({
     tipoOcupante: mapTipoOcupante(v.tipoOcupante),
     estado: v.estado === "ACTIVO" ? "activo" : "expirado",
     fechaExpiracion: null,
-    // Campos crudos para la ficha del Control de Acceso (sin llamadas extra a la API)
     usuarioNombre: v.usuarioNombre,
+    idUsuarioPropietario: v.idUsuarioPropietario,
     marca: v.marca,
     modelo: v.modelo,
     color: v.color,
@@ -56,6 +46,8 @@ const mapEstacionamiento = (e) => ({
     enMantenimiento: (e.estadoOcupacion || "") === "INACTIVO",
     vehiculoId: e.idVehiculoActual || e.vehiculoActualId || null,
     placaActual: e.placaActual || null,
+    propietarioNombre: e.propietarioNombre || null,
+    propietarioUsuarioId: e.propietarioUsuarioId || null,
 });
 
 const calcDuracion = (entrada, salida) => {
@@ -100,6 +92,8 @@ export function ParkingProvider({ children }) {
     const [vehicles, setVehicles] = useState([]);
     const [parkingSpaces, setParkingSpaces] = useState([]);
     const [accessLog, setAccessLog] = useState([]);
+    const [owners, setOwners] = useState([]);
+    const [loans, setLoans] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -124,23 +118,23 @@ export function ParkingProvider({ children }) {
         );
     }, []);
 
-    // ── Carga inicial / recarga desde la API ──
     const loadAll = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const [vehRaw, estRaw, permRaw] = await Promise.all([
+            const [vehRaw, estRaw, permRaw, ownersRaw, loansRaw] = await Promise.all([
                 parkingService.getVehiculos(),
                 parkingService.getEstacionamientos(),
                 parkingService.getPermanencias(),
+                parkingService.getPropietariosPlaza(),
+                parkingService.getPrestamosPlaza(),
             ]);
 
             const veh = vehRaw.map(mapVehiculo);
             const vehById = Object.fromEntries(veh.map((v) => [v.id, v]));
 
-            const estMapped = estRaw.map(mapEstacionamiento);
+            let estMapped = estRaw.map(mapEstacionamiento);
 
-            // Aplicar mapeo local plate→space y enriquecer con datos del vehículo
             for (const [plate, spaceId] of plateToSpace.current) {
                 const spot = estMapped.find((s) => s.id === spaceId);
                 if (spot && spot.ocupado) {
@@ -152,7 +146,39 @@ export function ParkingProvider({ children }) {
                 }
             }
 
+            const activeLoans = loansRaw.filter((l) => l.estado === "ACTIVO");
+
+            for (const spot of estMapped) {
+                const owner = ownersRaw.find(
+                    (o) => o.idEstacionamiento === spot.id
+                );
+                spot.propietarioNombre = owner?.nombreUsuario || null;
+                spot.propietarioUsuarioId = owner?.idUsuario || null;
+                spot.ocupanteTipo = null;
+
+                if (spot.ocupado && spot.vehiculoId) {
+                    const veh = vehById[spot.vehiculoId];
+                    if (
+                        veh &&
+                        spot.propietarioUsuarioId &&
+                        veh.idUsuarioPropietario === spot.propietarioUsuarioId
+                    ) {
+                        spot.ocupanteTipo = "PROPIO";
+                    } else if (
+                        activeLoans.some(
+                            (l) => l.idEstacionamiento === spot.id
+                        )
+                    ) {
+                        spot.ocupanteTipo = "PRESTAMO";
+                    } else {
+                        spot.ocupanteTipo = "VISITANTE";
+                    }
+                }
+            }
+
             setVehicles(veh);
+            setOwners(ownersRaw);
+            setLoans(loansRaw);
             setParkingSpaces(estMapped);
             setAccessLog(
                 permRaw
@@ -170,7 +196,6 @@ export function ParkingProvider({ children }) {
         loadAll();
     }, [loadAll]);
 
-    // ── VEHÍCULOS ──
     const addVehicle = useCallback(
         async (data) => {
             try {
@@ -195,7 +220,6 @@ export function ParkingProvider({ children }) {
 
     const updateVehicle = useCallback(
         async (id, changes) => {
-            // Solo aplica si trae datos de vehículo (no el espacioAsignado interno del mock)
             if (!changes || (!changes.placa && !changes.estado)) return;
             try {
                 await parkingService.updateVehiculo(id, {
@@ -227,7 +251,6 @@ export function ParkingProvider({ children }) {
         [addNotification, loadAll],
     );
 
-    // ── ACCESO ──
     const grantAccess = useCallback(
         async (placa, observacion, tipoOcupanteOverride) => {
             try {
@@ -240,15 +263,46 @@ export function ParkingProvider({ children }) {
                     observacion: observacion || null,
                     tipoOcupante: ocupante,
                 });
-                // Marcar la primera plaza disponible como OCUPADO
-                const libre = vehicle
-                    ? parkingSpaces.find(
-                          (s) =>
-                              s.condominio === vehicle.condominioNombre &&
-                              !s.ocupado &&
-                              !s.enMantenimiento,
-                      )
-                    : parkingSpaces.find((s) => !s.ocupado && !s.enMantenimiento);
+
+                const activeLoan = loans.find(
+                    (l) => l.estado === "ACTIVO" && l.placaAutorizada === plate,
+                );
+
+                let libre = null;
+
+                if (activeLoan) {
+                    libre = parkingSpaces.find(
+                        (s) =>
+                            s.id === activeLoan.idEstacionamiento &&
+                            !s.ocupado &&
+                            !s.enMantenimiento,
+                    );
+                }
+
+                if (!libre && vehicle) {
+                    libre = parkingSpaces.find(
+                        (s) =>
+                            s.propietarioUsuarioId === vehicle.idUsuarioPropietario &&
+                            !s.ocupado &&
+                            !s.enMantenimiento,
+                    );
+                }
+
+                if (!libre && vehicle) {
+                    libre = parkingSpaces.find(
+                        (s) =>
+                            s.condominio === vehicle.condominioNombre &&
+                            !s.ocupado &&
+                            !s.enMantenimiento,
+                    );
+                }
+
+                if (!libre) {
+                    libre = parkingSpaces.find(
+                        (s) => !s.ocupado && !s.enMantenimiento,
+                    );
+                }
+
                 if (libre) {
                     await parkingService.updateEstacionamiento(libre.id, {
                         codigo: libre.code,
@@ -263,7 +317,7 @@ export function ParkingProvider({ children }) {
                 addNotification("alert", `No se pudo registrar la entrada — ${placa}`, err?.message || "");
             }
         },
-        [vehicles, parkingSpaces, addNotification, loadAll],
+        [vehicles, parkingSpaces, loans, addNotification, loadAll],
     );
 
     const registerExit = useCallback(
@@ -275,13 +329,11 @@ export function ParkingProvider({ children }) {
                     placa: plate,
                     tipoOcupante: vehicle?.tipoOcupanteRaw || "VISITANTE",
                 });
-                // Marcar como LIBRE la plaza que tenía este vehículo
                 let target = null;
                 const espacioId = plateToSpace.current.get(plate);
                 if (espacioId) {
                     target = parkingSpaces.find((s) => s.id === espacioId);
                 }
-                // Fallback: buscar por placaActual o por ocupado sin vehículo
                 if (!target) {
                     target = parkingSpaces.find(
                         (s) => s.placaActual === plate || (s.ocupado && !s.vehiculoId),
@@ -305,7 +357,6 @@ export function ParkingProvider({ children }) {
         [vehicles, parkingSpaces, addNotification, loadAll],
     );
 
-    // El registro manual (placa ilegible / sin vehículo) requiere un vehículo existente en la API.
     const registerManual = useCallback(
         async (placa) => {
             await grantAccess(placa);
@@ -313,13 +364,11 @@ export function ParkingProvider({ children }) {
         [grantAccess],
     );
 
-    // ── ESPACIOS ──
     const getFirstAvailableSpace = useCallback(
         () => parkingSpaces.find((s) => !s.ocupado && !s.enMantenimiento) || null,
         [parkingSpaces],
     );
 
-    // Asignar un vehículo a una plaza = registrar su entrada + marcar la plaza como OCUPADO.
     const reassignSpace = useCallback(
         async (spaceId, placa) => {
             if (!placa) return;
@@ -363,7 +412,77 @@ export function ParkingProvider({ children }) {
         [parkingSpaces, addNotification, loadAll],
     );
 
-    // ── DERIVADAS ──
+    const assignOwner = useCallback(
+        async (estacionamientoId, usuarioId, nombreUsuario, placaVehiculo) => {
+            try {
+                const existing = owners.find((o) => o.idEstacionamiento === estacionamientoId);
+                if (existing) {
+                    await parkingService.deletePropietarioPlaza(existing.idPropietario);
+                }
+                await parkingService.createPropietarioPlaza({
+                    idEstacionamiento: estacionamientoId,
+                    idUsuario: usuarioId,
+                    nombreUsuario: nombreUsuario || "",
+                    placaVehiculo: placaVehiculo || "",
+                });
+                addNotification("success", `Propietario asignado a plaza`);
+                await loadAll();
+            } catch (err) {
+                addNotification("alert", "No se pudo asignar propietario", err?.message || "");
+            }
+        },
+        [owners, addNotification, loadAll],
+    );
+
+    const removeOwner = useCallback(
+        async (estacionamientoId) => {
+            try {
+                const existing = owners.find((o) => o.idEstacionamiento === estacionamientoId);
+                if (existing) {
+                    await parkingService.deletePropietarioPlaza(existing.idPropietario);
+                    addNotification("info", "Propietario eliminado de la plaza");
+                    await loadAll();
+                }
+            } catch (err) {
+                addNotification("alert", "No se pudo eliminar propietario", err?.message || "");
+            }
+        },
+        [owners, addNotification, loadAll],
+    );
+
+    const createLoan = useCallback(
+        async (data) => {
+            try {
+                await parkingService.createPrestamoPlaza({
+                    idEstacionamiento: data.idEstacionamiento,
+                    idPropietario: data.idPropietario,
+                    nombrePropietario: data.nombrePropietario || "",
+                    idUsuarioAutorizado: data.idUsuarioAutorizado,
+                    nombreUsuarioAutorizado: data.nombreUsuarioAutorizado || "",
+                    placaAutorizada: data.placaAutorizada || "",
+                });
+                addNotification("success", "Préstamo creado exitosamente");
+                await loadAll();
+            } catch (err) {
+                addNotification("alert", "No se pudo crear el préstamo", err?.message || "");
+            }
+        },
+        [addNotification, loadAll],
+    );
+
+    const finalizeLoan = useCallback(
+        async (loanId) => {
+            try {
+                await parkingService.finalizarPrestamoPlaza(loanId);
+                addNotification("info", "Préstamo finalizado");
+                await loadAll();
+            } catch (err) {
+                addNotification("alert", "No se pudo finalizar el préstamo", err?.message || "");
+            }
+        },
+        [addNotification, loadAll],
+    );
+
     const recentActivity = accessLog.slice(0, 10);
     const activeVehicles = vehicles.filter((v) => v.estado === "activo");
     const expiredVehicles = vehicles.filter((v) => v.estado === "expirado");
@@ -373,6 +492,8 @@ export function ParkingProvider({ children }) {
     const value = {
         vehicles,
         parkingSpaces,
+        owners,
+        loans,
         accessLog,
         loading,
         error,
@@ -397,6 +518,11 @@ export function ParkingProvider({ children }) {
         toggleSpaceMaintenance,
         getFirstAvailableSpace,
         resetAll: loadAll,
+
+        assignOwner,
+        removeOwner,
+        createLoan,
+        finalizeLoan,
 
         notifications,
         unreadCount: notifications.filter((n) => !n.read).length,

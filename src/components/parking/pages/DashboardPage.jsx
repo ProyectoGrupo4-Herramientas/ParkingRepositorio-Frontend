@@ -93,7 +93,7 @@ function PlaceholderChart() {
 }
 
 export default function DashboardPage() {
-  const { parkingSpaces, accessLog, spacesAvailable, spacesOccupied } = useParking();
+  const { parkingSpaces, accessLog, owners, loans, spacesAvailable, spacesOccupied } = useParking();
 
   const [pasesActivos, setPasesActivos] = useState([]);
 
@@ -118,6 +118,12 @@ export default function DashboardPage() {
   const maintenanceCount = useMemo(
     () => parkingSpaces.filter((s) => s.enMantenimiento).length,
     [parkingSpaces],
+  );
+
+  const ownerCount = owners.length;
+  const activeLoanCount = useMemo(
+    () => loans.filter((l) => l.estado === "ACTIVO").length,
+    [loans],
   );
 
   const todayAccesses = useMemo(
@@ -218,6 +224,30 @@ export default function DashboardPage() {
         <MetricCard icon={DoorOpen} label="Espacios ocupados" value={spacesOccupied} bgColor="bg-red-50" iconColor="text-red-500" />
         <MetricCard icon={Wrench} label="En mantenimiento" value={maintenanceCount} bgColor="bg-amber-50" iconColor="text-amber-500" />
       </div>
+
+      {/* ──────── SECCIÓN 2.5: Propietarios y Préstamos ──────── */}
+      {ownerCount > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3">
+              <span className="material-symbols-outlined text-indigo-500" style={{ fontSize: 20 }}>person</span>
+              <div>
+                <span className="font-bold text-slate-900">{ownerCount}</span>
+                <span className="text-slate-400 ml-1">propietarios asignados</span>
+              </div>
+            </div>
+            {activeLoanCount > 0 && (
+              <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3">
+                <span className="material-symbols-outlined text-indigo-500" style={{ fontSize: 20 }}>handshake</span>
+                <div>
+                  <span className="font-bold text-slate-900">{activeLoanCount}</span>
+                  <span className="text-slate-400 ml-1">préstamos activos</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ──────── SECCIÓN 3: Dos columnas ──────── */}
       <div className="flex flex-col lg:flex-row gap-4 mb-8">

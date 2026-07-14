@@ -11,7 +11,7 @@ export default function VehicleEntry() {
   const [showModal, setShowModal] = useState(false);
   const [pasesActivos, setPasesActivos] = useState([]);
 
-  const { vehicles, parkingSpaces, accessLog, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
+  const { vehicles, parkingSpaces, accessLog, owners, loans, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
 
   useEffect(() => {
     parkingService.getPasesInvitados().then((all) => {
@@ -40,16 +40,48 @@ export default function VehicleEntry() {
     [pasesActivos, plateU],
   );
 
+  const misPlazas = useMemo(
+    () =>
+      ficha?.idUsuarioPropietario
+        ? parkingSpaces.filter(
+            (s) => s.propietarioUsuarioId === ficha.idUsuarioPropietario,
+          )
+        : [],
+    [parkingSpaces, ficha],
+  );
+
+  const prestamoActivo = useMemo(
+    () => (plateU ? loans.find((l) => l.estado === "ACTIVO" && l.placaAutorizada === plateU) || null : null),
+    [loans, plateU],
+  );
+
+  const plazaPropietarioLibre = useMemo(
+    () => misPlazas.find((s) => !s.ocupado && !s.enMantenimiento) || null,
+    [misPlazas],
+  );
+
+  const plazaPrestamoLibre = useMemo(
+    () =>
+      prestamoActivo
+        ? parkingSpaces.find(
+            (s) => s.id === prestamoActivo.idEstacionamiento && !s.ocupado && !s.enMantenimiento,
+          ) || null
+        : null,
+    [parkingSpaces, prestamoActivo],
+  );
+
   const esVisitanteAutorizado = !!paseActivo;
-  const esResidente = ficha && ficha.tipoOcupanteRaw !== "VISITANTE" && !esVisitanteAutorizado;
+  const esResidente = ficha && ficha.tipoOcupanteRaw !== "VISITANTE" && !esVisitanteAutorizado && !prestamoActivo;
 
-  const tipoOcupante = esResidente
-    ? "PROPIETARIO"
-    : esVisitanteAutorizado
-      ? "INQUILINO_TEMPORAL"
-      : "DESCONOCIDO";
+  const tipoOcupante = prestamoActivo
+    ? "PRESTAMO"
+    : esResidente
+      ? "PROPIO"
+      : esVisitanteAutorizado
+        ? "INQUILINO_TEMPORAL"
+        : "DESCONOCIDO";
 
-  const noRegistrada = !!plateU && !ficha && !paseActivo;
+  const noRegistrada = !!plateU && !ficha && !paseActivo && !prestamoActivo;
 
   // ¿Ya está adentro?
   const estanciaActiva = useMemo(
@@ -60,23 +92,27 @@ export default function VehicleEntry() {
 
   const expirado = ficha?.estado === "expirado";
 
-  const puedeIngresar = esResidente || esVisitanteAutorizado;
+  const puedeIngresar = esResidente || esVisitanteAutorizado || !!prestamoActivo;
 
   const tieneDerecho = useMemo(() => {
-    if (!ficha && !paseActivo) return false;
+    if (!ficha && !paseActivo && !prestamoActivo) return false;
     if (expirado) return false;
     if (esVisitanteAutorizado) return true;
+    if (prestamoActivo && plazaPrestamoLibre) return true;
     if (esResidente) {
+      if (plazaPropietarioLibre) return true;
       const spotsEnCondominio = parkingSpaces.filter(
         (s) => s.condominio === ficha.condominioNombre,
       );
       return spotsEnCondominio.some((s) => !s.ocupado && !s.enMantenimiento);
     }
     return false;
-  }, [ficha, paseActivo, esResidente, esVisitanteAutorizado, expirado, parkingSpaces]);
+  }, [ficha, paseActivo, prestamoActivo, esResidente, esVisitanteAutorizado, expirado, parkingSpaces, plazaPropietarioLibre, plazaPrestamoLibre]);
 
   const previewSpace = useMemo(() => {
-    if (!ficha && !paseActivo) return null;
+    if (!ficha && !paseActivo && !prestamoActivo) return null;
+    if (prestamoActivo && plazaPrestamoLibre) return plazaPrestamoLibre.code;
+    if (esResidente && plazaPropietarioLibre) return plazaPropietarioLibre.code;
     const condominio = ficha?.condominioNombre || null;
     if (!condominio) return getFirstAvailableSpace()?.code || null;
     const spotsEnCondominio = parkingSpaces.filter(
@@ -86,7 +122,7 @@ export default function VehicleEntry() {
       spotsEnCondominio.find((s) => !s.ocupado && !s.enMantenimiento) ||
       getFirstAvailableSpace();
     return space?.code || space?.id || null;
-  }, [parkingSpaces, getFirstAvailableSpace, ficha]);
+  }, [parkingSpaces, getFirstAvailableSpace, ficha, prestamoActivo, plazaPropietarioLibre, plazaPrestamoLibre, esResidente]);
 
   const handleGrantAccess = () => {
     grantAccess(plate, `Puerta: ${puerta}`, tipoOcupante);
@@ -210,6 +246,34 @@ export default function VehicleEntry() {
               <span className="material-symbols-outlined text-sm">check_circle</span> Puede ingresar
             </div>
           </>
+        ) : prestamoActivo ? (
+          <>
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl text-indigo-500" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  handshake
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-slate-800">{prestamoActivo.nombreUsuarioAutorizado}</h4>
+                  <span className="text-[11px] font-medium text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">Préstamo de plaza</span>
+                </div>
+                <p className="text-sm text-slate-500">
+                  Plaza {plazaPrestamoLibre?.code || prestamoActivo.idEstacionamiento} · Cortesía de {prestamoActivo.nombrePropietario}
+                </p>
+              </div>
+            </div>
+            {plazaPrestamoLibre ? (
+              <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">check_circle</span> Plaza disponible — puede ingresar
+              </div>
+            ) : (
+              <div className="mt-2 text-xs font-medium text-red-600 flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">cancel</span> Plaza ocupada — no se puede conceder ingreso
+              </div>
+            )}
+          </>
         ) : expirado ? (
           <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
             <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
@@ -260,7 +324,7 @@ export default function VehicleEntry() {
         )}
 
         {/* Espacio asignado (solo al entrar) */}
-        {ficha && !yaAdentro && (
+        {(ficha || prestamoActivo) && !yaAdentro && (
           <div className={`border rounded p-4 mb-6 flex justify-between items-center ${previewSpace ? "bg-slate-100 border-slate-200" : "bg-red-50 border-red-200"}`}>
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">Espacio Asignado</label>
