@@ -55,6 +55,7 @@ const normEstacionamiento = (e) => ({
     ocupanteNombre: e.ocupanteNombre ?? null,
     tipoUso: e.tipoUso ?? null,
     prestamoId: e.prestamoId ?? null,
+    prestamoExpirado: e.prestamoExpirado ?? false,
 });
 
 const normPermanencia = (p) => ({

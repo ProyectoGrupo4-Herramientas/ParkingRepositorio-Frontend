@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import ReassignModal from "../modals/ReassignModal";
 import MaintenanceModal from "../modals/MaintenanceModal";
 import LoanModal from "../modals/LoanModal";
+import OwnerModal from "../modals/OwnerModal";
 
 const statusConfig = {
   occupied: { label: "OCUPADO", classes: "bg-red-100 text-red-600", dot: "bg-red-500" },
@@ -16,6 +17,7 @@ export default function ParkingDetailsModal({ spot, onClose, onReassign, onToggl
   const [showReassign, setShowReassign] = useState(false);
   const [showMaintenance, setShowMaintenance] = useState(false);
   const [showLoan, setShowLoan] = useState(false);
+  const [showOwner, setShowOwner] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -44,7 +46,13 @@ export default function ParkingDetailsModal({ spot, onClose, onReassign, onToggl
     handleClose();
   };
 
-  const tipoUsoLabel = spot.tipoUso === "PRESTAMO" ? " (Préstamo)" : spot.tipoUso === "PROPIO" ? " (Uso propio)" : "";
+  const tipoUsoLabel = spot.tipoUso === "PRESTAMO" && spot.prestamoExpirado
+    ? " (Préstamo vencido)"
+    : spot.tipoUso === "PRESTAMO"
+      ? " (Préstamo)"
+      : spot.tipoUso === "PROPIO"
+        ? " (Uso propio)"
+        : "";
 
   return (
     <>
@@ -117,23 +125,33 @@ export default function ParkingDetailsModal({ spot, onClose, onReassign, onToggl
             {/* Ocupante actual (solo si ocupado) */}
             {spot.status === "occupied" && spot.ocupanteNombre && (
               <div className={`border rounded-xl p-4 ${
-                spot.tipoUso === "PRESTAMO"
-                  ? "bg-amber-50 border-amber-200"
-                  : "bg-slate-50 border-slate-200"
+                spot.tipoUso === "PRESTAMO" && spot.prestamoExpirado
+                  ? "bg-red-50 border-red-200"
+                  : spot.tipoUso === "PRESTAMO"
+                    ? "bg-amber-50 border-amber-200"
+                    : "bg-slate-50 border-slate-200"
               }`}>
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                   Ocupante Actual
                 </p>
                 <div className="flex items-center gap-3">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                    spot.tipoUso === "PRESTAMO" ? "bg-amber-100 text-amber-700" : "bg-indigo-100 text-indigo-700"
+                    spot.tipoUso === "PRESTAMO" && spot.prestamoExpirado
+                      ? "bg-red-100 text-red-700"
+                      : spot.tipoUso === "PRESTAMO"
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-indigo-100 text-indigo-700"
                   }`}>
                     {spot.ocupanteNombre.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <p className="font-semibold text-slate-900 text-sm truncate">{spot.ocupanteNombre}</p>
                     <p className="text-xs text-slate-500">
-                      {spot.tipoUso === "PRESTAMO" ? "Préstamo temporal" : "Uso propio"}
+                      {spot.tipoUso === "PRESTAMO" && spot.prestamoExpirado
+                        ? "Préstamo vencido"
+                        : spot.tipoUso === "PRESTAMO"
+                          ? "Préstamo temporal"
+                          : "Uso propio"}
                     </p>
                   </div>
                 </div>
@@ -166,6 +184,16 @@ export default function ParkingDetailsModal({ spot, onClose, onReassign, onToggl
 
           {/* Acciones */}
           <div className="px-5 py-4 border-t border-slate-100 flex flex-col gap-2">
+            {!isMaintenance && !spot.propietarioNombre && (
+              <button
+                onClick={() => setShowOwner(true)}
+                className="w-full bg-brand text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 17 }}>person_add</span>
+                Asignar Propietario
+              </button>
+            )}
+
             {!isMaintenance && spot.propietarioNombre && (
               <button
                 onClick={() => setShowLoan(true)}
@@ -176,13 +204,13 @@ export default function ParkingDetailsModal({ spot, onClose, onReassign, onToggl
               </button>
             )}
 
-            {!isMaintenance && (
+            {!isMaintenance && spot.propietarioNombre && (
               <button
-                onClick={() => setShowReassign(true)}
-                className="w-full bg-brand text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors"
+                onClick={() => setShowOwner(true)}
+                className="w-full border border-slate-200 text-slate-700 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 17 }}>swap_horiz</span>
-                Reasignar a Unidad
+                <span className="material-symbols-outlined" style={{ fontSize: 17 }}>edit</span>
+                Cambiar Propietario
               </button>
             )}
 
@@ -218,6 +246,9 @@ export default function ParkingDetailsModal({ spot, onClose, onReassign, onToggl
       )}
       {showLoan && (
         <LoanModal spot={spot} onClose={() => setShowLoan(false)} />
+      )}
+      {showOwner && (
+        <OwnerModal spot={spot} onClose={() => setShowOwner(false)} />
       )}
     </>
   );

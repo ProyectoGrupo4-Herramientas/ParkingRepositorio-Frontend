@@ -74,7 +74,11 @@ export default function VehicleEntry() {
     if (!ficha && !paseActivo && !loanActivo) return false;
     if (expirado) return false;
     if (esVisitanteAutorizado) return true;
-    if (esPrestamo) return true;
+    if (esPrestamo && loanActivo) {
+      const spot = parkingSpaces.find((s) => s.id === loanActivo.idEstacionamiento);
+      if (spot && spot.ocupado && spot.tipoUso === "PROPIO") return false;
+      return true;
+    }
     if (esResidente) {
       const spotsEnCondominio = parkingSpaces.filter(
         (s) => s.condominio === ficha.condominioNombre,
@@ -266,6 +270,16 @@ export default function VehicleEntry() {
               <p className="text-sm font-semibold text-red-700">Acceso denegado — Vehículo no autorizado</p>
               <p className="text-sm text-red-600">
                 La placa <strong>{plate}</strong> no corresponde a un residente ni a un visitante con pase vigente. No se puede conceder el ingreso.
+              </p>
+            </div>
+          </div>
+        ) : esPrestamo && loanActivo && !tieneDerecho ? (
+          <div className="flex items-center gap-3 mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <span className="material-symbols-outlined text-amber-500 text-2xl">block</span>
+            <div>
+              <p className="text-sm font-semibold text-amber-700">Acceso denegado</p>
+              <p className="text-sm text-amber-600">
+                La plaza se encuentra actualmente ocupada por el propietario.
               </p>
             </div>
           </div>

@@ -61,6 +61,7 @@ const mapEstacionamiento = (e) => ({
     ocupanteNombre: e.ocupanteNombre ?? null,
     tipoUso: e.tipoUso ?? null,
     prestamoId: e.prestamoId ?? null,
+    prestamoExpirado: e.prestamoExpirado ?? false,
 });
 
 const calcDuracion = (entrada, salida) => {

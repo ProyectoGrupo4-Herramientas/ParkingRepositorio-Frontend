@@ -38,7 +38,8 @@ export default function ParkingSpot({ spot, onClick, isSelected }) {
   const infoParts = [spot.code];
   if (spot.propietarioNombre) infoParts.push(`Dueño: ${spot.propietarioNombre}`);
   if (spot.plate) infoParts.push(`Placa: ${spot.plate}`);
-  if (spot.tipoUso === "PRESTAMO") infoParts.push("(Préstamo)");
+  if (spot.tipoUso === "PRESTAMO" && spot.prestamoExpirado) infoParts.push("(Préstamo vencido)");
+  else if (spot.tipoUso === "PRESTAMO") infoParts.push("(Préstamo)");
   return (
     <button
       onClick={onClick}
