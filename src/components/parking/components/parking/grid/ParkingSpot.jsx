@@ -35,10 +35,14 @@ export default function ParkingSpot({ spot, onClick, isSelected }) {
   };
 
   const c = config[spot.status] || config.available;
+  const infoParts = [spot.code];
+  if (spot.propietarioNombre) infoParts.push(`Dueño: ${spot.propietarioNombre}`);
+  if (spot.plate) infoParts.push(`Placa: ${spot.plate}`);
+  if (spot.tipoUso === "PRESTAMO") infoParts.push("(Préstamo)");
   return (
     <button
       onClick={onClick}
-      title={`${spot.code}${spot.plate ? ` · ${spot.plate}` : ""}`}
+      title={infoParts.join(" · ")}
       className={`
         group relative border-2 rounded-xl overflow-hidden text-left transition-all w-full cursor-pointer
         ${c.wrap}

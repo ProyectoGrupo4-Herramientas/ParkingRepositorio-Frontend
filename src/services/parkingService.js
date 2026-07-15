@@ -50,6 +50,11 @@ const normEstacionamiento = (e) => ({
     condominioNombre: e.condominioNombre,
     vehiculoActualId: e.idVehiculoActual,
     placaActual: e.placaActual,
+    propietarioId: e.propietarioId ?? null,
+    propietarioNombre: e.propietarioNombre ?? null,
+    ocupanteNombre: e.ocupanteNombre ?? null,
+    tipoUso: e.tipoUso ?? null,
+    prestamoId: e.prestamoId ?? null,
 });
 
 const normPermanencia = (p) => ({
@@ -132,6 +137,56 @@ export const parkingService = {
                 nombreInvitado: data.nombreInvitado || "",
             }),
         }),
+
+    // ── PROPIETARIOS DE PLAZA ──
+    getPropietariosPlaza: async () =>
+        arr(await req("/api/propietarios-plaza")).map((p) => ({
+            id: p.idPropietario,
+            idEstacionamiento: p.idEstacionamiento,
+            idUsuario: p.idUsuario,
+            nombreUsuario: p.nombreUsuario,
+            placaVehiculo: p.placaVehiculo,
+            fechaAsignacion: p.fechaAsignacion,
+            estado: p.estado,
+        })),
+
+    createPropietarioPlaza: (data) =>
+        req("/api/propietarios-plaza", {
+            method: "POST",
+            body: JSON.stringify(data),
+        }),
+
+    deletePropietarioPlaza: (id) =>
+        req(`/api/propietarios-plaza/${id}`, { method: "DELETE" }),
+
+    // ── PRESTAMOS DE PLAZA ──
+    getPrestamosPlaza: async () =>
+        arr(await req("/api/prestamos-plaza")).map((p) => ({
+            id: p.idPrestamo,
+            idPropietario: p.idPropietario,
+            idUsuarioAutorizado: p.idUsuarioAutorizado,
+            nombreUsuarioAutorizado: p.nombreUsuarioAutorizado,
+            idEstacionamiento: p.idEstacionamiento,
+            placaAutorizada: p.placaAutorizada,
+            fechaInicio: p.fechaInicio,
+            fechaFin: p.fechaFin,
+            estado: p.estado,
+        })),
+
+    createPrestamoPlaza: (data) =>
+        req("/api/prestamos-plaza", {
+            method: "POST",
+            body: JSON.stringify(data),
+        }),
+
+    updatePrestamoPlaza: (id, data) =>
+        req(`/api/prestamos-plaza/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }),
+
+    finalizarPrestamoPlaza: (id) =>
+        req(`/api/prestamos-plaza/${id}/finalizar`, { method: "POST" }),
 
     // No usados por las páginas principales (el dashboard calcula del contexto).
     getParkingStats: async () => null,

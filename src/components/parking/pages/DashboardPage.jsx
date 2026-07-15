@@ -93,7 +93,7 @@ function PlaceholderChart() {
 }
 
 export default function DashboardPage() {
-  const { parkingSpaces, accessLog, spacesAvailable, spacesOccupied } = useParking();
+  const { parkingSpaces, accessLog, prestamosPlaza, spacesAvailable, spacesOccupied } = useParking();
 
   const [pasesActivos, setPasesActivos] = useState([]);
 
@@ -289,6 +289,33 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <span className="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full shrink-0">
+                  Activo
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ──────── SECCIÓN 3.75: Préstamos Activos ──────── */}
+      {prestamosPlaza.filter((p) => p.estado === "ACTIVO").length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-base font-semibold text-slate-900 mb-3">Préstamos de Plaza Activos</h2>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] divide-y divide-slate-100">
+            {prestamosPlaza.filter((p) => p.estado === "ACTIVO").map((p) => (
+              <div key={p.id} className="flex items-center gap-4 px-5 py-3.5">
+                <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                  <Clock size={18} className="text-amber-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900">
+                    Plaza {parkingSpaces.find((s) => s.id === p.idEstacionamiento)?.code || p.idEstacionamiento}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {p.nombreUsuarioAutorizado || p.placaAutorizada} · Hasta {new Date(p.fechaFin).toLocaleDateString("es-PE")}
+                  </p>
+                </div>
+                <span className="text-[11px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full shrink-0">
                   Activo
                 </span>
               </div>

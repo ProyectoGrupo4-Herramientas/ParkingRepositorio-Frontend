@@ -11,7 +11,7 @@ export default function VehicleEntry() {
   const [showModal, setShowModal] = useState(false);
   const [pasesActivos, setPasesActivos] = useState([]);
 
-  const { vehicles, parkingSpaces, accessLog, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
+  const { vehicles, parkingSpaces, accessLog, prestamosPlaza, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
 
   useEffect(() => {
     parkingService.getPasesInvitados().then((all) => {
@@ -40,14 +40,22 @@ export default function VehicleEntry() {
     [pasesActivos, plateU],
   );
 
+  const loanActivo = useMemo(
+    () => (plateU ? prestamosPlaza.find((p) => p.placaAutorizada === plateU && p.estado === "ACTIVO") || null : null),
+    [prestamosPlaza, plateU],
+  );
+
   const esVisitanteAutorizado = !!paseActivo;
-  const esResidente = ficha && ficha.tipoOcupanteRaw !== "VISITANTE" && !esVisitanteAutorizado;
+  const esPrestamo = !!loanActivo;
+  const esResidente = ficha && ficha.tipoOcupanteRaw !== "VISITANTE" && !esVisitanteAutorizado && !esPrestamo;
 
   const tipoOcupante = esResidente
     ? "PROPIETARIO"
-    : esVisitanteAutorizado
-      ? "INQUILINO_TEMPORAL"
-      : "DESCONOCIDO";
+    : esPrestamo
+      ? "PRESTAMO"
+      : esVisitanteAutorizado
+        ? "INQUILINO_TEMPORAL"
+        : "DESCONOCIDO";
 
   const noRegistrada = !!plateU && !ficha && !paseActivo;
 
@@ -60,12 +68,13 @@ export default function VehicleEntry() {
 
   const expirado = ficha?.estado === "expirado";
 
-  const puedeIngresar = esResidente || esVisitanteAutorizado;
+  const puedeIngresar = esResidente || esVisitanteAutorizado || esPrestamo;
 
   const tieneDerecho = useMemo(() => {
-    if (!ficha && !paseActivo) return false;
+    if (!ficha && !paseActivo && !loanActivo) return false;
     if (expirado) return false;
     if (esVisitanteAutorizado) return true;
+    if (esPrestamo) return true;
     if (esResidente) {
       const spotsEnCondominio = parkingSpaces.filter(
         (s) => s.condominio === ficha.condominioNombre,
@@ -73,9 +82,13 @@ export default function VehicleEntry() {
       return spotsEnCondominio.some((s) => !s.ocupado && !s.enMantenimiento);
     }
     return false;
-  }, [ficha, paseActivo, esResidente, esVisitanteAutorizado, expirado, parkingSpaces]);
+  }, [ficha, paseActivo, loanActivo, esResidente, esVisitanteAutorizado, esPrestamo, expirado, parkingSpaces]);
 
   const previewSpace = useMemo(() => {
+    if (esPrestamo && loanActivo) {
+      const spot = parkingSpaces.find((s) => s.id === loanActivo.idEstacionamiento);
+      return spot?.code || null;
+    }
     if (!ficha && !paseActivo) return null;
     const condominio = ficha?.condominioNombre || null;
     if (!condominio) return getFirstAvailableSpace()?.code || null;
@@ -86,7 +99,7 @@ export default function VehicleEntry() {
       spotsEnCondominio.find((s) => !s.ocupado && !s.enMantenimiento) ||
       getFirstAvailableSpace();
     return space?.code || space?.id || null;
-  }, [parkingSpaces, getFirstAvailableSpace, ficha]);
+  }, [parkingSpaces, getFirstAvailableSpace, ficha, esPrestamo, loanActivo]);
 
   const handleGrantAccess = () => {
     grantAccess(plate, `Puerta: ${puerta}`, tipoOcupante);
@@ -182,6 +195,32 @@ export default function VehicleEntry() {
             </div>
             <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1">
               <span className="material-symbols-outlined text-sm">check_circle</span> Puede ingresar
+            </div>
+          </>
+        ) : esPrestamo && loanActivo ? (
+          <>
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl text-amber-600" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  swap_horiz
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-slate-800">{loanActivo.nombreUsuarioAutorizado || plateU}</h4>
+                  <span className="text-[11px] font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Préstamo de plaza</span>
+                </div>
+                <p className="text-sm text-slate-500">
+                  Plaza {parkingSpaces.find((s) => s.id === loanActivo.idEstacionamiento)?.code || loanActivo.idEstacionamiento}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-2">
+              <FichaItem label="Plaza" value={parkingSpaces.find((s) => s.id === loanActivo.idEstacionamiento)?.code || "—"} />
+              <FichaItem label="Válido hasta" value={new Date(loanActivo.fechaFin).toLocaleDateString("es-PE")} />
+            </div>
+            <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">check_circle</span> Puede ingresar (préstamo activo)
             </div>
           </>
         ) : esVisitanteAutorizado && paseActivo ? (

@@ -56,6 +56,11 @@ const mapEstacionamiento = (e) => ({
     enMantenimiento: (e.estadoOcupacion || "") === "INACTIVO",
     vehiculoId: e.idVehiculoActual || e.vehiculoActualId || null,
     placaActual: e.placaActual || null,
+    propietarioId: e.propietarioId ?? null,
+    propietarioNombre: e.propietarioNombre ?? null,
+    ocupanteNombre: e.ocupanteNombre ?? null,
+    tipoUso: e.tipoUso ?? null,
+    prestamoId: e.prestamoId ?? null,
 });
 
 const calcDuracion = (entrada, salida) => {
@@ -100,6 +105,8 @@ export function ParkingProvider({ children }) {
     const [vehicles, setVehicles] = useState([]);
     const [parkingSpaces, setParkingSpaces] = useState([]);
     const [accessLog, setAccessLog] = useState([]);
+    const [propietariosPlaza, setPropietariosPlaza] = useState([]);
+    const [prestamosPlaza, setPrestamosPlaza] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -129,10 +136,12 @@ export function ParkingProvider({ children }) {
         setLoading(true);
         setError(null);
         try {
-            const [vehRaw, estRaw, permRaw] = await Promise.all([
+            const [vehRaw, estRaw, permRaw, propRaw, prestRaw] = await Promise.all([
                 parkingService.getVehiculos(),
                 parkingService.getEstacionamientos(),
                 parkingService.getPermanencias(),
+                parkingService.getPropietariosPlaza(),
+                parkingService.getPrestamosPlaza(),
             ]);
 
             const veh = vehRaw.map(mapVehiculo);
@@ -154,6 +163,8 @@ export function ParkingProvider({ children }) {
 
             setVehicles(veh);
             setParkingSpaces(estMapped);
+            setPropietariosPlaza(propRaw);
+            setPrestamosPlaza(prestRaw);
             setAccessLog(
                 permRaw
                     .map((p) => mapPermanencia(p, vehById))
@@ -363,6 +374,73 @@ export function ParkingProvider({ children }) {
         [parkingSpaces, addNotification, loadAll],
     );
 
+    // ── PROPIETARIOS DE PLAZA ──
+    const assignOwner = useCallback(
+        async (data) => {
+            try {
+                await parkingService.createPropietarioPlaza({
+                    idEstacionamiento: data.idEstacionamiento,
+                    idUsuario: data.idUsuario,
+                    nombreUsuario: data.nombreUsuario || "",
+                    placaVehiculo: data.placaVehiculo || "",
+                });
+                addNotification("success", "Propietario asignado a la plaza");
+                await loadAll();
+            } catch (err) {
+                addNotification("alert", "No se pudo asignar propietario", err?.message || "");
+            }
+        },
+        [addNotification, loadAll],
+    );
+
+    const removeOwner = useCallback(
+        async (id) => {
+            try {
+                await parkingService.deletePropietarioPlaza(id);
+                addNotification("info", "Propietario removido de la plaza");
+                await loadAll();
+            } catch (err) {
+                addNotification("alert", "No se pudo remover propietario", err?.message || "");
+            }
+        },
+        [addNotification, loadAll],
+    );
+
+    // ── PRESTAMOS DE PLAZA ──
+    const createLoan = useCallback(
+        async (data) => {
+            try {
+                await parkingService.createPrestamoPlaza({
+                    idPropietario: data.idPropietario,
+                    idUsuarioAutorizado: data.idUsuarioAutorizado,
+                    nombreUsuarioAutorizado: data.nombreUsuarioAutorizado || "",
+                    idEstacionamiento: data.idEstacionamiento,
+                    placaAutorizada: data.placaAutorizada || "",
+                    fechaInicio: data.fechaInicio,
+                    fechaFin: data.fechaFin,
+                });
+                addNotification("success", "Préstamo de plaza creado");
+                await loadAll();
+            } catch (err) {
+                addNotification("alert", "No se pudo crear el préstamo", err?.message || "");
+            }
+        },
+        [addNotification, loadAll],
+    );
+
+    const endLoan = useCallback(
+        async (id) => {
+            try {
+                await parkingService.finalizarPrestamoPlaza(id);
+                addNotification("info", "Préstamo finalizado");
+                await loadAll();
+            } catch (err) {
+                addNotification("alert", "No se pudo finalizar el préstamo", err?.message || "");
+            }
+        },
+        [addNotification, loadAll],
+    );
+
     // ── DERIVADAS ──
     const recentActivity = accessLog.slice(0, 10);
     const activeVehicles = vehicles.filter((v) => v.estado === "activo");
@@ -374,6 +452,8 @@ export function ParkingProvider({ children }) {
         vehicles,
         parkingSpaces,
         accessLog,
+        propietariosPlaza,
+        prestamosPlaza,
         loading,
         error,
         reload: loadAll,
@@ -397,6 +477,11 @@ export function ParkingProvider({ children }) {
         toggleSpaceMaintenance,
         getFirstAvailableSpace,
         resetAll: loadAll,
+
+        assignOwner,
+        removeOwner,
+        createLoan,
+        endLoan,
 
         notifications,
         unreadCount: notifications.filter((n) => !n.read).length,
