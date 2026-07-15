@@ -158,6 +158,30 @@ export function ParkingProvider({ children }) {
                     if (vehiculo) {
                         spot.vehiculoId = vehiculo.id;
                         spot.placaActual = plate;
+                        // Determinar tipoUso localmente si el backend no lo fijó
+                        if (!spot.tipoUso && !spot.propietarioNombre) {
+                            const owner = propRaw.find((p) => p.idEstacionamiento === spot.id);
+                            const loan = prestRaw.find(
+                                (p) => p.idEstacionamiento === spot.id && p.estado === "ACTIVO",
+                            );
+                            if (loan) {
+                                spot.tipoUso = "PRESTAMO";
+                                spot.ocupanteNombre = loan.nombreUsuarioAutorizado;
+                                spot.prestamoId = loan.id;
+                            } else if (owner) {
+                                const ownerVehicle = veh.find(
+                                    (v) => v.id === vehiculo.id && v.usuarioNombre === owner.nombreUsuario,
+                                );
+                                if (ownerVehicle) {
+                                    spot.tipoUso = "PROPIO";
+                                    spot.ocupanteNombre = owner.nombreUsuario;
+                                } else {
+                                    spot.tipoUso = "VISITANTE";
+                                }
+                            } else {
+                                spot.tipoUso = "VISITANTE";
+                            }
+                        }
                     }
                 }
             }
@@ -262,11 +286,13 @@ export function ParkingProvider({ children }) {
                       )
                     : parkingSpaces.find((s) => !s.ocupado && !s.enMantenimiento);
                 if (libre) {
-                    await parkingService.updateEstacionamiento(libre.id, {
+                    const updateData = {
                         codigo: libre.code,
                         estadoOcupacion: "OCUPADO",
-                        zonaEstacionamientoId: libre.zonaId,
-                    });
+                    };
+                    if (libre.zonaId != null) updateData.zonaEstacionamientoId = libre.zonaId;
+                    if (vehicle?.id) updateData.idVehiculoActual = vehicle.id;
+                    await parkingService.updateEstacionamiento(libre.id, updateData);
                     plateToSpace.current.set(plate, libre.id);
                 }
                 addNotification("success", `Entrada aprobada — ${placa?.toUpperCase()}`);
@@ -300,11 +326,12 @@ export function ParkingProvider({ children }) {
                     );
                 }
                 if (target) {
-                    await parkingService.updateEstacionamiento(target.id, {
+                    const updateData = {
                         codigo: target.code,
                         estadoOcupacion: "LIBRE",
-                        zonaEstacionamientoId: target.zonaId,
-                    });
+                    };
+                    if (target.zonaId != null) updateData.zonaEstacionamientoId = target.zonaId;
+                    await parkingService.updateEstacionamiento(target.id, updateData);
                     plateToSpace.current.set(plate, target.id);
                 }
                 addNotification("info", `Salida registrada — ${placa?.toUpperCase()}`);
@@ -343,11 +370,9 @@ export function ParkingProvider({ children }) {
                     metodo: "MANUAL",
                     estacionamientoId: spaceId,
                 });
-                await parkingService.updateEstacionamiento(spaceId, {
-                    codigo: space.code,
-                    estadoOcupacion: "OCUPADO",
-                    zonaEstacionamientoId: space.zonaId,
-                });
+                const updData = { codigo: space.code, estadoOcupacion: "OCUPADO" };
+                if (space.zonaId != null) updData.zonaEstacionamientoId = space.zonaId;
+                await parkingService.updateEstacionamiento(spaceId, updData);
                 addNotification("success", `Plaza asignada a ${placa.toUpperCase()}`);
                 await loadAll();
             } catch (err) {
@@ -362,11 +387,9 @@ export function ParkingProvider({ children }) {
             const space = parkingSpaces.find((s) => s.id === spaceId);
             if (!space) return;
             try {
-                await parkingService.updateEstacionamiento(spaceId, {
-                    codigo: space.code,
-                    estadoOcupacion: newStatus === "maintenance" ? "INACTIVO" : "LIBRE",
-                    zonaEstacionamientoId: space.zonaId,
-                });
+                const maintData = { codigo: space.code, estadoOcupacion: newStatus === "maintenance" ? "INACTIVO" : "LIBRE" };
+                if (space.zonaId != null) maintData.zonaEstacionamientoId = space.zonaId;
+                await parkingService.updateEstacionamiento(spaceId, maintData);
                 await loadAll();
             } catch (err) {
                 addNotification("alert", "No se pudo cambiar el estado de la plaza", err?.message || "");
