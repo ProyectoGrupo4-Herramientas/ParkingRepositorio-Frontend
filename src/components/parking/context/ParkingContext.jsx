@@ -158,18 +158,21 @@ export function ParkingProvider({ children }) {
                     if (vehiculo) {
                         spot.vehiculoId = vehiculo.id;
                         spot.placaActual = plate;
-                        // Determinar tipoUso localmente si el backend no lo fijó
-                        if (!spot.tipoUso && !spot.propietarioNombre) {
+                    }
+                    // Enriquecer tipoUso/ocupante desde datos locales si el backend no lo fijó
+                    if (!spot.tipoUso) {
+                        const loan = prestRaw.find(
+                            (p) => p.placaAutorizada === plate && p.estado === "ACTIVO",
+                        );
+                        if (loan) {
+                            spot.tipoUso = "PRESTAMO";
+                            spot.ocupanteNombre = loan.nombreUsuarioAutorizado;
+                            spot.prestamoId = loan.id;
+                            spot.placaActual = plate;
+                        } else {
                             const owner = propRaw.find((p) => p.idEstacionamiento === spot.id);
-                            const loan = prestRaw.find(
-                                (p) => p.idEstacionamiento === spot.id && p.estado === "ACTIVO",
-                            );
-                            if (loan) {
-                                spot.tipoUso = "PRESTAMO";
-                                spot.ocupanteNombre = loan.nombreUsuarioAutorizado;
-                                spot.prestamoId = loan.id;
-                            } else if (owner) {
-                                const ownerVehicle = veh.find(
+                            if (owner) {
+                                const ownerVehicle = vehiculo && veh.find(
                                     (v) => v.id === vehiculo.id && v.usuarioNombre === owner.nombreUsuario,
                                 );
                                 if (ownerVehicle) {
