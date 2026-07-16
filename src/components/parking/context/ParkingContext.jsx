@@ -276,24 +276,33 @@ export function ParkingProvider({ children }) {
                     observacion: observacion || null,
                     tipoOcupante: ocupante,
                 });
-                // Marcar la primera plaza disponible como OCUPADO
-                const libre = vehicle
-                    ? parkingSpaces.find(
-                          (s) =>
-                              s.condominio === vehicle.condominioNombre &&
-                              !s.ocupado &&
-                              !s.enMantenimiento,
-                      )
-                    : parkingSpaces.find((s) => !s.ocupado && !s.enMantenimiento);
-                if (libre) {
+                // Buscar plaza: si hay prestamo, usar esa; si no, buscar libre
+                const loan = prestamosPlaza.find(
+                    (p) => p.placaAutorizada === plate && p.estado === "ACTIVO",
+                );
+                let target = null;
+                if (loan) {
+                    target = parkingSpaces.find((s) => s.id === loan.idEstacionamiento);
+                }
+                if (!target) {
+                    target = vehicle
+                        ? parkingSpaces.find(
+                              (s) =>
+                                  s.condominio === vehicle.condominioNombre &&
+                                  !s.ocupado &&
+                                  !s.enMantenimiento,
+                          )
+                        : parkingSpaces.find((s) => !s.ocupado && !s.enMantenimiento);
+                }
+                if (target) {
                     const updateData = {
-                        codigo: libre.code,
+                        codigo: target.code,
                         estadoOcupacion: "OCUPADO",
                     };
-                    if (libre.zonaId != null) updateData.zonaEstacionamientoId = libre.zonaId;
+                    if (target.zonaId != null) updateData.zonaEstacionamientoId = target.zonaId;
                     if (vehicle?.id) updateData.idVehiculoActual = vehicle.id;
-                    await parkingService.updateEstacionamiento(libre.id, updateData);
-                    plateToSpace.current.set(plate, libre.id);
+                    await parkingService.updateEstacionamiento(target.id, updateData);
+                    plateToSpace.current.set(plate, target.id);
                 }
                 addNotification("success", `Entrada aprobada — ${placa?.toUpperCase()}`);
                 await loadAll();
@@ -301,7 +310,7 @@ export function ParkingProvider({ children }) {
                 addNotification("alert", `No se pudo registrar la entrada — ${placa}`, err?.message || "");
             }
         },
-        [vehicles, parkingSpaces, addNotification, loadAll],
+        [vehicles, parkingSpaces, prestamosPlaza, addNotification, loadAll],
     );
 
     const registerExit = useCallback(
