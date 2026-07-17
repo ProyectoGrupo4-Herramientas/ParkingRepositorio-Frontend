@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { format } from "date-fns";
 import { useParking } from "../context/ParkingContext";
 import { Link } from "react-router-dom";
 import { parkingService } from "../../../services/parkingService";
@@ -71,22 +72,44 @@ function CircularProgress({ percent }) {
   );
 }
 
-function PlaceholderChart() {
+function AccessChart({ accessLog, today }) {
+  const hours = useMemo(() => {
+    const counts = new Array(24).fill(0);
+    for (const log of accessLog) {
+      if (log.fecha === today && log.horaEntrada) {
+        const h = parseInt(log.horaEntrada.split(":")[0], 10);
+        if (!isNaN(h) && h >= 0 && h < 24) counts[h]++;
+      }
+    }
+    return counts;
+  }, [accessLog, today]);
+
+  const maxVal = Math.max(...hours, 1);
+  const now = new Date().getHours();
+
   return (
-    <div className="relative w-full h-20 mt-4">
-      <div className="absolute inset-0 flex items-end gap-[3px] opacity-30">
-        {[35, 55, 40, 65, 50, 70, 60, 80, 55, 75, 62, 85, 68, 78, 58, 72, 48, 66, 54, 76, 60, 82, 70, 90].map((h, i) => (
-          <div
-            key={i}
-            className="flex-1 bg-brand rounded-t"
-            style={{ height: `${h * 0.5}px` }}
-          />
-        ))}
+    <div className="w-full mt-4">
+      <div className="flex items-end gap-[2px] h-24">
+        {hours.map((count, i) => {
+          const isCurrent = i === now && count > 0;
+          return (
+            <div
+              key={i}
+              title={`${i.toString().padStart(2, "0")}:00 — ${count} acceso(s)`}
+              className={`flex-1 rounded-t transition-all duration-300 ${
+                count > 0 ? (isCurrent ? "bg-brand" : "bg-brand/50") : "bg-slate-100"
+              }`}
+              style={{ height: `${(count / maxVal) * 100}%`, minHeight: count > 0 ? "4px" : "1px" }}
+            />
+          );
+        })}
       </div>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <p className="text-xs text-slate-300 font-medium tracking-wide">
-          Tendencia de accesos — próximamente
-        </p>
+      <div className="flex justify-between mt-1 text-[10px] text-slate-400 font-medium">
+        <span>00</span>
+        <span>06</span>
+        <span>12</span>
+        <span>18</span>
+        <span>23</span>
       </div>
     </div>
   );
@@ -94,6 +117,8 @@ function PlaceholderChart() {
 
 export default function DashboardPage() {
   const { parkingSpaces, accessLog, prestamosPlaza, spacesAvailable, spacesOccupied } = useParking();
+
+  const todayStr = format(new Date(), "yyyy-MM-dd");
 
   const [pasesActivos, setPasesActivos] = useState([]);
 
@@ -121,29 +146,17 @@ export default function DashboardPage() {
   );
 
   const todayAccesses = useMemo(
-    () =>
-      accessLog.filter((l) => {
-        if (!l.fechaEntrada) return false;
-        const now = new Date();
-        const d = new Date(l.fechaEntrada);
-        return d.getDate() === now.getDate() &&
-               d.getMonth() === now.getMonth() &&
-               d.getFullYear() === now.getFullYear();
-      }).length,
-    [accessLog],
+    () => accessLog.filter((l) => l.fecha === todayStr).length,
+    [accessLog, todayStr],
   );
 
   const yesterdayAccesses = useMemo(
-    () =>
-      accessLog.filter((l) => {
-        if (!l.fechaEntrada) return false;
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const d = new Date(l.fechaEntrada);
-        return d.getDate() === yesterday.getDate() &&
-               d.getMonth() === yesterday.getMonth() &&
-               d.getFullYear() === yesterday.getFullYear();
-      }).length,
+    () => {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const yesterdayStr = format(d, "yyyy-MM-dd");
+      return accessLog.filter((l) => l.fecha === yesterdayStr).length;
+    },
     [accessLog],
   );
 
@@ -238,7 +251,33 @@ export default function DashboardPage() {
           <p className="text-xs text-slate-400">
             vs {yesterdayAccesses} ayer
           </p>
-          <PlaceholderChart />
+          <AccessChart accessLog={accessLog} today={todayStr} />
+          {/* Últimos accesos */}
+          {todayAccesses > 0 && (
+            <div className="mt-4 border-t border-slate-100 pt-3">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Últimos accesos</p>
+              <div className="space-y-1.5">
+                {accessLog
+                  .filter((l) => l.fecha === todayStr)
+                  .slice(0, 5)
+                  .map((l) => (
+                    <div key={l.id} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-slate-800">{l.placa}</span>
+                        <span className="text-slate-400">{l.horaEntrada}</span>
+                      </div>
+                      <span className={`px-1.5 py-0.5 rounded font-medium ${
+                        l.estadoEntrada === "entrada_aprobada"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-slate-100 text-slate-500"
+                      }`}>
+                        {l.estadoEntrada === "entrada_aprobada" ? "Dentro" : "Fuera"}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Columna derecha — Ocupación */}

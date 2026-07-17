@@ -138,11 +138,11 @@ export function ParkingProvider({ children }) {
         setError(null);
         try {
             const [vehRaw, estRaw, permRaw, propRaw, prestRaw] = await Promise.all([
-                parkingService.getVehiculos(),
-                parkingService.getEstacionamientos(),
-                parkingService.getPermanencias(),
-                parkingService.getPropietariosPlaza(),
-                parkingService.getPrestamosPlaza(),
+                parkingService.getVehiculos().catch(() => []),
+                parkingService.getEstacionamientos().catch(() => []),
+                parkingService.getPermanencias().catch(() => []),
+                parkingService.getPropietariosPlaza().catch(() => []),
+                parkingService.getPrestamosPlaza().catch(() => []),
             ]);
 
             const veh = vehRaw.map(mapVehiculo);
