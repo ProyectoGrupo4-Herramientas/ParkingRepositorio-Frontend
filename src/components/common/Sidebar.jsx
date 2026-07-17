@@ -10,6 +10,7 @@ import {
   LogOut,
   PlusCircle,
   Clock,
+  CarFront,
 } from "lucide-react";
 
 const navLinks = [
@@ -39,7 +40,10 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
       >
         {/* logo */}
         <div className="px-6 mb-8">
-          <h1 className="text-lg font-black text-slate-900">ParkControl</h1>
+          <h1 className="text-lg font-black text-slate-900 flex items-center gap-2">
+            <CarFront size={22} className="text-slate-700" aria-hidden="true" />
+            ParkControl
+          </h1>
           <p className="text-xs text-slate-400">Gestión Urbana</p>
         </div>
 
