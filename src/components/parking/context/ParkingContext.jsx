@@ -214,13 +214,17 @@ export function ParkingProvider({ children }) {
     );
 
     // ── ACCESO ──
+    // visitante (opcional): { nombre, documento }. Si la placa no está registrada, la API
+    // da de alta el vehículo al vuelo como VISITANTE y guarda sus datos en el log (spec V6).
     const grantAccess = useCallback(
-        async (placa, observacion) => {
+        async (placa, observacion, visitante) => {
             try {
                 await parkingService.registrarEntrada({
                     placa: (placa || "").toUpperCase(),
                     metodo: "MANUAL",
                     observacion: observacion || null,
+                    nombreVisitante: visitante?.nombre?.trim() || null,
+                    documentoVisitante: visitante?.documento?.trim() || null,
                 });
                 addNotification("success", `Entrada aprobada — ${placa?.toUpperCase()}`);
                 await loadAll();

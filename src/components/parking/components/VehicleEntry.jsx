@@ -8,6 +8,8 @@ export default function VehicleEntry() {
   const [plate, setPlate] = useState("");
   const [puerta, setPuerta] = useState(PUERTAS[0]);
   const [showModal, setShowModal] = useState(false);
+  // Datos del visitante (spec V6): se piden cuando la placa no está registrada.
+  const [visitante, setVisitante] = useState({ nombre: "", documento: "" });
 
   const { vehicles, accessLog, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
 
@@ -34,9 +36,14 @@ export default function VehicleEntry() {
     return space?.code || space?.id || null;
   }, [getFirstAvailableSpace, ficha]);
 
+  // Se puede conceder acceso si la placa está registrada, o si es un visitante con nombre.
+  const esVisitanteNuevo = noRegistrada && !!visitante.nombre.trim();
+  const puedeConceder = !!ficha || esVisitanteNuevo;
+
   const handleGrantAccess = () => {
-    grantAccess(plate, `Puerta: ${puerta}`);
+    grantAccess(plate, `Puerta: ${puerta}`, esVisitanteNuevo ? visitante : undefined);
     setShowModal(false);
+    if (esVisitanteNuevo) setVisitante({ nombre: "", documento: "" });
   };
 
   return (
@@ -125,11 +132,41 @@ export default function VehicleEntry() {
             </div>
           </>
         ) : noRegistrada ? (
-          <div className="flex items-center gap-3 mb-4">
-            <span className="material-symbols-outlined text-amber-500 text-2xl">block</span>
-            <p className="text-sm text-slate-600">
-              Matrícula <strong>{plate}</strong> no registrada. Regístrala primero en <strong>Directorio de Residentes</strong> para concederle acceso.
-            </p>
+          <div className="mb-4">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="material-symbols-outlined text-blue-500 text-2xl">person_add</span>
+              <p className="text-sm text-slate-600">
+                Matrícula <strong>{plate}</strong> no registrada. Concédele acceso como{" "}
+                <strong>visitante</strong> completando sus datos, o dala de alta en el{" "}
+                <strong>Directorio de Residentes</strong>.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">
+                  Nombre del visitante *
+                </label>
+                <input
+                  className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-sm text-slate-800 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
+                  type="text"
+                  value={visitante.nombre}
+                  onChange={(e) => setVisitante({ ...visitante, nombre: e.target.value })}
+                  placeholder="Nombre y apellido"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">
+                  Documento (DNI)
+                </label>
+                <input
+                  className="w-full bg-white border border-slate-300 rounded px-3 py-2 text-sm text-slate-800 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
+                  type="text"
+                  value={visitante.documento}
+                  onChange={(e) => setVisitante({ ...visitante, documento: e.target.value })}
+                  placeholder="Opcional"
+                />
+              </div>
+            </div>
           </div>
         ) : (
           <p className="text-sm text-slate-400 mb-4">Escanea o escribe una placa registrada para ver su información.</p>
@@ -144,7 +181,7 @@ export default function VehicleEntry() {
         )}
 
         {/* Espacio asignado (solo al entrar) */}
-        {ficha && !yaAdentro && (
+        {puedeConceder && !yaAdentro && (
           <div className={`border rounded p-4 mb-6 flex justify-between items-center ${previewSpace ? "bg-slate-100 border-slate-200" : "bg-red-50 border-red-200"}`}>
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">Espacio Asignado</label>
@@ -172,7 +209,7 @@ export default function VehicleEntry() {
         ) : (
           <button
             onClick={() => setShowModal(true)}
-            disabled={!ficha}
+            disabled={!puedeConceder}
             className="w-full bg-brand text-white py-3 px-4 rounded font-bold flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-sm">login</span>
@@ -190,11 +227,17 @@ export default function VehicleEntry() {
               <p className="text-slate-600 mb-2">
                 ¿Conceder acceso a la placa <strong className="text-slate-800">{plate}</strong> por <strong>{puerta}</strong>?
               </p>
-              {ficha && (
+              {ficha ? (
                 <p className="text-sm text-slate-400 mb-6">
                   {ficha.usuarioNombre} · {ficha.condominioNombre} · Torre {ficha.torreNombre} · Depto {ficha.unidad}
                 </p>
-              )}
+              ) : esVisitanteNuevo ? (
+                <p className="text-sm text-slate-400 mb-6">
+                  Visitante: <strong className="text-slate-600">{visitante.nombre}</strong>
+                  {visitante.documento ? ` · DNI ${visitante.documento}` : ""} — se registrará su
+                  vehículo al ingresar.
+                </p>
+              ) : null}
               <div className="flex gap-3 justify-end">
                 <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded font-bold text-slate-600 hover:bg-slate-100">Cancelar</button>
                 <button onClick={handleGrantAccess} className="px-4 py-2 rounded font-bold bg-brand text-white hover:bg-brand-dark">Confirmar</button>
