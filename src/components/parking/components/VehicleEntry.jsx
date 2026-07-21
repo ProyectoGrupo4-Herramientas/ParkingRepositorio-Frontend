@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParking } from "../context/ParkingContext";
+import { parkingService } from "../../../services/parkingService";
 import CameraPanel from "./CameraPanel";
 
 const PUERTAS = ["Entrada Principal", "Entrada Secundaria"];
@@ -10,38 +11,118 @@ export default function VehicleEntry() {
   const [showModal, setShowModal] = useState(false);
   // Datos del visitante (spec V6): se piden cuando la placa no está registrada.
   const [visitante, setVisitante] = useState({ nombre: "", documento: "" });
+  const [pasesActivos, setPasesActivos] = useState([]);
 
-  const { vehicles, accessLog, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
+  const { vehicles, parkingSpaces, accessLog, prestamosPlaza, grantAccess, registerExit, getFirstAvailableSpace } = useParking();
+
+  useEffect(() => {
+    parkingService.getPasesInvitados().then((all) => {
+      const now = new Date();
+      setPasesActivos(
+        all.filter(
+          (p) =>
+            p.estado === "ACTIVO" &&
+            new Date(p.fechaFin) >= now &&
+            new Date(p.fechaInicio) <= now,
+        ),
+      );
+    }).catch(() => {});
+  }, []);
 
   const plateU = plate.trim().toUpperCase();
 
-  // Ficha del vehículo: se busca en los vehículos ya cargados (sin llamadas extra a la API).
+  // Determinar tipo de ocupante
   const ficha = useMemo(
     () => (plateU ? vehicles.find((v) => v.placa === plateU) || null : null),
     [vehicles, plateU],
   );
-  const noRegistrada = !!plateU && !ficha;
 
-  // ¿Ya está adentro? (estancia activa = sin hora de salida)
+  const paseActivo = useMemo(
+    () => (plateU ? pasesActivos.find((p) => p.placa === plateU) || null : null),
+    [pasesActivos, plateU],
+  );
+
+  const loanActivo = useMemo(
+    () => (plateU ? prestamosPlaza.find((p) => p.placaAutorizada === plateU && p.estado === "ACTIVO") || null : null),
+    [prestamosPlaza, plateU],
+  );
+
+  const esVisitanteAutorizado = !!paseActivo;
+  const esPrestamo = !!loanActivo;
+  const esResidente = ficha && ficha.tipoOcupanteRaw !== "VISITANTE" && !esVisitanteAutorizado && !esPrestamo;
+  const esVisitante = ficha && ficha.tipoOcupanteRaw === "VISITANTE" && !esPrestamo;
+
+  const tipoOcupante = esResidente
+    ? "PROPIETARIO"
+    : esPrestamo
+      ? "PRESTAMO"
+      : esVisitante
+        ? "VISITANTE"
+        : esVisitanteAutorizado
+          ? "INQUILINO_TEMPORAL"
+          : "DESCONOCIDO";
+
+  const noRegistrada = !!plateU && !ficha && !paseActivo;
+
+  // ¿Ya está adentro?
   const estanciaActiva = useMemo(
     () => accessLog.find((l) => l.placa === plateU && !l.horaSalida),
     [accessLog, plateU],
   );
   const yaAdentro = !!estanciaActiva;
 
-  const esResidente = ficha ? ficha.tipoOcupanteRaw !== "VISITANTE" : false;
+  const expirado = ficha?.estado === "expirado";
+
+  const puedeIngresar = esResidente || esVisitanteAutorizado || esPrestamo || esVisitante;
+
+  const tieneDerecho = useMemo(() => {
+    if (!ficha && !paseActivo && !loanActivo) return false;
+    if (expirado) return false;
+    if (esVisitanteAutorizado) return true;
+    if (esVisitante) return true;
+    if (esPrestamo && loanActivo) {
+      const spot = parkingSpaces.find((s) => s.id === loanActivo.idEstacionamiento);
+      if (spot && spot.ocupado && spot.tipoUso === "PROPIO") return false;
+      return true;
+    }
+    if (esResidente) {
+      const spotsEnCondominio = parkingSpaces.filter(
+        (s) => s.condominio === ficha.condominioNombre,
+      );
+      return spotsEnCondominio.some((s) => !s.ocupado && !s.enMantenimiento);
+    }
+    return false;
+  }, [ficha, paseActivo, loanActivo, esResidente, esVisitanteAutorizado, esPrestamo, esVisitante, expirado, parkingSpaces]);
 
   const previewSpace = useMemo(() => {
-    const space = getFirstAvailableSpace();
+    if (esPrestamo && loanActivo) {
+      const spot = parkingSpaces.find((s) => s.id === loanActivo.idEstacionamiento);
+      return spot?.code || null;
+    }
+    if (!ficha && !paseActivo) return null;
+    const condominio = ficha?.condominioNombre || null;
+    if (!condominio) return getFirstAvailableSpace()?.code || null;
+    const spotsEnCondominio = parkingSpaces.filter(
+      (s) => s.condominio === condominio,
+    );
+    const space =
+      spotsEnCondominio.find((s) => !s.ocupado && !s.enMantenimiento) ||
+      getFirstAvailableSpace();
     return space?.code || space?.id || null;
-  }, [getFirstAvailableSpace, ficha]);
+  }, [parkingSpaces, getFirstAvailableSpace, ficha, esPrestamo, loanActivo]);
 
-  // Se puede conceder acceso si la placa está registrada, o si es un visitante con nombre.
+  // Visitante nuevo: placa no registrada pero el portero ingresó su nombre (spec V6).
   const esVisitanteNuevo = noRegistrada && !!visitante.nombre.trim();
-  const puedeConceder = !!ficha || esVisitanteNuevo;
+  // Se concede acceso si cumple las reglas normales, o si es un visitante identificado.
+  const puedeConceder = (puedeIngresar && tieneDerecho && !expirado) || esVisitanteNuevo;
 
   const handleGrantAccess = () => {
-    grantAccess(plate, `Puerta: ${puerta}`, esVisitanteNuevo ? visitante : undefined);
+    grantAccess(
+      plate,
+      `Puerta: ${puerta}`,
+      esVisitanteNuevo ? "VISITANTE" : tipoOcupante,
+      esVisitanteNuevo ? visitante : undefined,
+    );
     setShowModal(false);
     if (esVisitanteNuevo) setVisitante({ nombre: "", documento: "" });
   };
@@ -111,17 +192,20 @@ export default function VehicleEntry() {
 
       {/* Validación + ficha */}
       <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-        {ficha ? (
+        {esResidente && ficha ? (
           <>
             <div className="flex items-start gap-4 mb-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${esResidente ? "bg-green-100" : "bg-blue-100"}`}>
-                <span className={`material-symbols-outlined text-2xl ${esResidente ? "text-green-600" : "text-blue-600"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                  {esResidente ? "check_circle" : "info"}
+              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl text-green-600" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  check_circle
                 </span>
               </div>
-              <div>
-                <h4 className="font-semibold text-slate-800 mb-1">{ficha.usuarioNombre}</h4>
-                <p className="text-sm text-slate-500">{ficha.marca} {ficha.modelo} {ficha.color} · {ficha.tipoOcupanteRaw}</p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-slate-800">{ficha.usuarioNombre}</h4>
+                  <span className="text-[11px] font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Residente</span>
+                </div>
+                <p className="text-sm text-slate-500">{ficha.marca} {ficha.modelo} {ficha.color}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
@@ -130,15 +214,137 @@ export default function VehicleEntry() {
               <FichaItem label="Piso" value={ficha.pisoNumero} />
               <FichaItem label="Depto" value={ficha.unidad} />
             </div>
+            <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">check_circle</span> Puede ingresar
+            </div>
           </>
+        ) : esPrestamo && loanActivo ? (
+          <>
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl text-amber-600" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  swap_horiz
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-slate-800">{loanActivo.nombreUsuarioAutorizado || ficha?.usuarioNombre || ficha?.propietario || plateU}</h4>
+                  <span className="text-[11px] font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Préstamo de plaza</span>
+                </div>
+                <p className="text-sm text-slate-500">
+                  {ficha ? `${ficha.marca} ${ficha.modelo} ${ficha.color}`.trim() || "" : ""}
+                  {ficha ? " · " : ""}Plaza {parkingSpaces.find((s) => s.id === loanActivo.idEstacionamiento)?.code || loanActivo.idEstacionamiento}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-2">
+              <FichaItem label="Plaza" value={parkingSpaces.find((s) => s.id === loanActivo.idEstacionamiento)?.code || "—"} />
+              <FichaItem label="Válido hasta" value={new Date(loanActivo.fechaFin).toLocaleDateString("es-PE")} />
+            </div>
+            <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">check_circle</span> Puede ingresar (préstamo activo)
+            </div>
+          </>
+        ) : esVisitante && ficha ? (
+          <>
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl text-yellow-600" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  badge
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-slate-800">{ficha.usuarioNombre || ficha.propietario || plateU}</h4>
+                  <span className="text-[11px] font-medium text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full">Visitante registrado</span>
+                </div>
+                <p className="text-sm text-slate-500">{ficha.marca} {ficha.modelo} {ficha.color}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
+              <FichaItem label="Condominio" value={ficha.condominioNombre} />
+              <FichaItem label="Torre" value={ficha.torreNombre} />
+              <FichaItem label="Piso" value={ficha.pisoNumero} />
+              <FichaItem label="Depto" value={ficha.unidad} />
+            </div>
+            <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">check_circle</span> Puede ingresar
+            </div>
+          </>
+        ) : esVisitanteAutorizado && paseActivo ? (
+          <>
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl text-indigo-500" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  badge
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-slate-800">{paseActivo.nombreInvitado || plateU}</h4>
+                  <span className="text-[11px] font-medium text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">Visitante autorizado</span>
+                </div>
+                <p className="text-sm text-slate-500">
+                  {paseActivo.codigo ? `Pase ${paseActivo.codigo}` : "Pase temporal"}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-2">
+              <FichaItem label="Apartamento" value={paseActivo.apartamentoId || "—"} />
+              <FichaItem label="Válido hasta" value={new Date(paseActivo.fechaFin).toLocaleDateString("es-PE")} />
+            </div>
+            <div className="mt-2 text-xs font-medium text-emerald-600 flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">check_circle</span> Puede ingresar
+            </div>
+          </>
+        ) : expirado ? (
+          <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+            <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
+            <div>
+              <p className="text-sm font-semibold text-red-700">Acceso denegado — Permiso vencido</p>
+              <p className="text-sm text-red-600">
+                El permiso del vehículo <strong>{plate}</strong> ha expirado. Renueva el registro en <strong>Directorio de Residentes</strong>.
+              </p>
+            </div>
+          </div>
+        ) : tipoOcupante === "DESCONOCIDO" && plateU ? (
+          <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+            <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
+            <div>
+              <p className="text-sm font-semibold text-red-700">Acceso denegado — Vehículo no autorizado</p>
+              <p className="text-sm text-red-600">
+                La placa <strong>{plate}</strong> no corresponde a un residente ni a un visitante con pase vigente. No se puede conceder el ingreso.
+              </p>
+            </div>
+          </div>
+        ) : esPrestamo && loanActivo && !tieneDerecho ? (
+          <div className="flex items-center gap-3 mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <span className="material-symbols-outlined text-amber-500 text-2xl">block</span>
+            <div>
+              <p className="text-sm font-semibold text-amber-700">Acceso denegado</p>
+              <p className="text-sm text-amber-600">
+                La plaza se encuentra actualmente ocupada por el propietario.
+              </p>
+            </div>
+          </div>
+        ) : !tieneDerecho && ficha ? (
+          <div className="flex items-center gap-3 mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+            <span className="material-symbols-outlined text-red-500 text-2xl">gpp_bad</span>
+            <div>
+              <p className="text-sm font-semibold text-red-700">Acceso denegado</p>
+              <p className="text-sm text-red-600">
+                El condominio <strong>{ficha.condominioNombre}</strong> no tiene espacios disponibles. No se puede conceder el ingreso.
+              </p>
+            </div>
+          </div>
         ) : noRegistrada ? (
           <div className="mb-4">
             <div className="flex items-center gap-3 mb-3">
               <span className="material-symbols-outlined text-blue-500 text-2xl">person_add</span>
               <p className="text-sm text-slate-600">
                 Matrícula <strong>{plate}</strong> no registrada. Concédele acceso como{" "}
-                <strong>visitante</strong> completando sus datos, o dala de alta en el{" "}
-                <strong>Directorio de Residentes</strong>.
+                <strong>visitante</strong> completando sus datos, o regístrala en el{" "}
+                <strong>Directorio de Residentes</strong> o con un <strong>Pase Temporal</strong>.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -169,7 +375,7 @@ export default function VehicleEntry() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-slate-400 mb-4">Escanea o escribe una placa registrada para ver su información.</p>
+          <p className="text-sm text-slate-400 mb-4">Escanea o escribe una placa para ver su información.</p>
         )}
 
         {/* Aviso si ya está adentro */}

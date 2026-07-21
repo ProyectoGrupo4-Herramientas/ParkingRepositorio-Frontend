@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { X, Search } from "lucide-react";
 import { parkingService } from "../../../services/parkingService";
 
 /*
@@ -14,6 +14,8 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
 
     const [condominioId, setCondominioId] = useState("");
     const [usuarioId, setUsuarioId] = useState("");
+    const [inqQuery, setInqQuery] = useState("");
+    const [inqFocused, setInqFocused] = useState(false);
     const [plate, setPlate] = useState("");
     const [marca, setMarca] = useState("");
     const [modelo, setModelo] = useState("");
@@ -49,6 +51,25 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
 
     const inquilinoSel = inquilinos.find((u) => String(u.id) === String(usuarioId));
 
+    const filteredInquilinos = useMemo(() => {
+        if (!inqQuery) return inquilinos;
+        const q = inqQuery.toLowerCase();
+        return inquilinos.filter(
+            (u) =>
+                u.nombres.toLowerCase().includes(q) ||
+                u.apellidos.toLowerCase().includes(q) ||
+                (u.unidad && u.unidad.toLowerCase().includes(q)),
+        );
+    }, [inquilinos, inqQuery]);
+
+    const handleSelectInquilino = (u) => {
+        setUsuarioId(String(u.id));
+        setInqQuery(`${u.nombres} ${u.apellidos}`.trim());
+        setInqFocused(false);
+    };
+
+    const showInqList = inqFocused && condominioId && !loadingInq;
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!condominioId || !usuarioId || !plate.trim()) {
@@ -65,6 +86,8 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
                 ? `${inquilinoSel.nombres} ${inquilinoSel.apellidos}`
                 : "",
             unit: inquilinoSel?.unidad || "",
+            tipoRegistro: "Propietario",
+            apartamentoId: inquilinoSel?.apartamentoId || null,
         });
         onClose();
     };
@@ -104,21 +127,60 @@ const VehicleModal = ({ isOpen, onClose, onSave }) => {
                         {/* INQUILINO */}
                         <div>
                             <label className="text-sm font-medium">Inquilino / Residente</label>
-                            <select
-                                value={usuarioId}
-                                onChange={(e) => setUsuarioId(e.target.value)}
-                                disabled={!condominioId || loadingInq}
-                                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md bg-white disabled:bg-gray-100"
-                            >
-                                <option value="">
-                                    {loadingInq ? "Cargando…" : "— Selecciona inquilino —"}
-                                </option>
-                                {inquilinos.map((u) => (
-                                    <option key={u.id} value={u.id}>
-                                        {u.nombres} {u.apellidos}{u.unidad ? ` — Unidad ${u.unidad}` : ""}
-                                    </option>
-                                ))}
-                            </select>
+                            {!condominioId ? (
+                                <p className="text-xs text-gray-400 mt-1">
+                                    Selecciona un condominio primero.
+                                </p>
+                            ) : loadingInq ? (
+                                <p className="text-xs text-gray-400 mt-1">Cargando…</p>
+                            ) : (
+                                <div className="relative mt-1">
+                                    <div className="relative">
+                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            value={inqQuery}
+                                            onChange={(e) => { setInqQuery(e.target.value); setUsuarioId(""); }}
+                                            onFocus={() => setInqFocused(true)}
+                                            onBlur={() => setTimeout(() => setInqFocused(false), 200)}
+                                            placeholder="Buscar por nombre, apellido o unidad…"
+                                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                                        />
+                                    </div>
+                                    {showInqList && (
+                                        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                            {filteredInquilinos.length === 0 ? (
+                                                <p className="text-xs text-gray-400 text-center py-4">
+                                                    No se encontraron residentes
+                                                </p>
+                                            ) : (
+                                                filteredInquilinos.map((u) => (
+                                                    <button
+                                                        key={u.id}
+                                                        type="button"
+                                                        onClick={() => handleSelectInquilino(u)}
+                                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-gray-50 text-sm ${
+                                                            String(u.id) === usuarioId ? "bg-brand/10" : ""
+                                                        }`}
+                                                    >
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="font-medium text-gray-800 truncate">
+                                                                {u.nombres} {u.apellidos}
+                                                            </p>
+                                                            <p className="text-xs text-gray-400">
+                                                                Unidad {u.unidad || "—"}
+                                                            </p>
+                                                        </div>
+                                                        {String(u.id) === usuarioId && (
+                                                            <span className="material-symbols-outlined text-brand text-sm">check_circle</span>
+                                                        )}
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             {inquilinoSel && (
                                 <p className="text-xs text-gray-500 mt-1">
                                     {inquilinoSel.tipoOcupante} · Unidad {inquilinoSel.unidad || "—"}

@@ -54,6 +54,12 @@ const normEstacionamiento = (e) => ({
     condominioNombre: e.condominioNombre,
     vehiculoActualId: e.idVehiculoActual,
     placaActual: e.placaActual,
+    propietarioId: e.propietarioId ?? null,
+    propietarioNombre: e.propietarioNombre ?? null,
+    ocupanteNombre: e.ocupanteNombre ?? null,
+    tipoUso: e.tipoUso ?? null,
+    prestamoId: e.prestamoId ?? null,
+    prestamoExpirado: e.prestamoExpirado ?? false,
 });
 
 const normPermanencia = (p) => ({
@@ -97,9 +103,9 @@ export const parkingService = {
                 matricula: data.placa,
                 idUsuarioPropietario: data.usuarioId,
                 marcaModelo: [data.marca, data.modelo].filter(Boolean).join(" ") || "",
-                estado: "ACTIVO",
-                tipoRegistro: "Propietario",
-                idApartamento: 1,
+                estado: data.estado || "ACTIVO",
+                tipoRegistro: data.tipoRegistro || "Propietario",
+                idApartamento: data.idApartamento || null,
             }),
         }),
     updateVehiculo: (id, data) =>
@@ -110,6 +116,82 @@ export const parkingService = {
     deleteVehiculo: (id) => req(`/api/vehiculos/${id}`, { method: "DELETE" }),
     updateEstacionamiento: (id, data) =>
         req(`/api/estacionamientos/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+    getPasesInvitados: async () =>
+        arr(await req("/api/pases-invitados")).map((p) => ({
+            id: p.idPase,
+            codigo: p.codigoPase,
+            placa: p.matricula,
+            apartamentoId: p.idApartamento,
+            fechaInicio: p.fechaInicio,
+            fechaFin: p.fechaFin,
+            estado: p.estado,
+            nombreInvitado: p.nombreInvitado || "",
+        })),
+
+    createPaseInvitado: (data) =>
+        req("/api/pases-invitados", {
+            method: "POST",
+            body: JSON.stringify({
+                matricula: data.placa,
+                idApartamento: data.apartamentoId,
+                idUsuarioEmisor: data.usuarioId,
+                fechaInicio: data.fechaInicio,
+                fechaFin: data.fechaFin,
+                estado: "ACTIVO",
+                nombreInvitado: data.nombreInvitado || "",
+            }),
+        }),
+
+    // ── PROPIETARIOS DE PLAZA ──
+    getPropietariosPlaza: async () =>
+        arr(await req("/api/propietarios-plaza")).map((p) => ({
+            id: p.idPropietario,
+            idEstacionamiento: p.idEstacionamiento,
+            idUsuario: p.idUsuario,
+            nombreUsuario: p.nombreUsuario,
+            placaVehiculo: p.placaVehiculo,
+            fechaAsignacion: p.fechaAsignacion,
+            estado: p.estado,
+        })),
+
+    createPropietarioPlaza: (data) =>
+        req("/api/propietarios-plaza", {
+            method: "POST",
+            body: JSON.stringify(data),
+        }),
+
+    deletePropietarioPlaza: (id) =>
+        req(`/api/propietarios-plaza/${id}`, { method: "DELETE" }),
+
+    // ── PRESTAMOS DE PLAZA ──
+    getPrestamosPlaza: async () =>
+        arr(await req("/api/prestamos-plaza")).map((p) => ({
+            id: p.idPrestamo,
+            idPropietario: p.idPropietario,
+            idUsuarioAutorizado: p.idUsuarioAutorizado,
+            nombreUsuarioAutorizado: p.nombreUsuarioAutorizado,
+            idEstacionamiento: p.idEstacionamiento,
+            placaAutorizada: p.placaAutorizada,
+            fechaInicio: p.fechaInicio,
+            fechaFin: p.fechaFin,
+            estado: p.estado,
+        })),
+
+    createPrestamoPlaza: (data) =>
+        req("/api/prestamos-plaza", {
+            method: "POST",
+            body: JSON.stringify(data),
+        }),
+
+    updatePrestamoPlaza: (id, data) =>
+        req(`/api/prestamos-plaza/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }),
+
+    finalizarPrestamoPlaza: (id) =>
+        req(`/api/prestamos-plaza/${id}/finalizar`, { method: "POST" }),
 
     // No usados por las páginas principales (el dashboard calcula del contexto).
     getParkingStats: async () => null,

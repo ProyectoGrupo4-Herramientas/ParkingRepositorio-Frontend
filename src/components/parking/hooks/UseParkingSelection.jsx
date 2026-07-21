@@ -66,6 +66,12 @@ export function useParkingSelection() {
             ? "build"
             : null,
         tipo: space.tipo,
+        propietarioId: space.propietarioId ?? null,
+        propietarioNombre: space.propietarioNombre ?? null,
+        ocupanteNombre: space.ocupanteNombre ?? null,
+        tipoUso: space.tipoUso ?? null,
+        prestamoId: space.prestamoId ?? null,
+        prestamoExpirado: space.prestamoExpirado ?? false,
       };
     });
   }, [parkingSpaces, vehicles, accessLog]);

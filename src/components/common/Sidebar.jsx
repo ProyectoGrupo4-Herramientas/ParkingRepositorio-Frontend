@@ -9,13 +9,15 @@ import {
   HelpCircle,
   LogOut,
   PlusCircle,
+  Clock,
+  CarFront,
 } from "lucide-react";
 
 const navLinks = [
   { to: "/", icon: LayoutDashboard, label: "Panel" },
   { to: "/access", icon: Shield, label: "Control de Acceso" },
-  { to: "/residents", icon: Users, label: "Directorio de Residentes" },
   { to: "/parking", icon: Map, label: "Mapa de Estacionamiento" },
+  { to: "/residents", icon: Users, label: "Directorio de Residentes" },
   { to: "/history", icon: History, label: "Historial de Acceso" },
 ];
 
@@ -38,19 +40,11 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
       >
         {/* logo */}
         <div className="px-6 mb-8">
-          <h1 className="text-lg font-black text-slate-900">ParkControl</h1>
+          <h1 className="text-lg font-black text-slate-900 flex items-center gap-2">
+            <CarFront size={22} className="text-slate-700" aria-hidden="true" />
+            ParkControl
+          </h1>
           <p className="text-xs text-slate-400">Gestión Urbana</p>
-        </div>
-
-        {/* button */}
-        <div className="px-4 mb-6">
-          <button
-            onClick={onOpenModal}
-            className="w-full bg-brand text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-brand-dark"
-          >
-            <PlusCircle size={18} />
-            Registrar Nuevo Vehículo
-          </button>
         </div>
 
         {/* nav */}
@@ -72,6 +66,27 @@ export default function Sidebar({ open, onClose, onOpenModal }) {
               {label}
             </NavLink>
           ))}
+
+          {/* Registrar vehículo */}
+          <button
+            onClick={() => { onOpenModal(); onClose(); }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-brand hover:text-white transition-colors w-full text-left"
+          >
+            <PlusCircle size={20} />
+            Registrar Nuevo Vehículo
+          </button>
+
+          {/* Crear pase temporal */}
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("open:guest-pass"));
+              onClose();
+            }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-brand hover:text-white transition-colors w-full text-left"
+          >
+            <Clock size={20} />
+            Crear Pase Temporal
+          </button>
         </nav>
 
         {/* bottom */}
